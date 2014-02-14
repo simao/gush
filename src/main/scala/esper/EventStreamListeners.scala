@@ -7,19 +7,18 @@ import scala.Console._
 import com.espertech.esper.client.{EventBean, UpdateListener, EPServiceProvider}
 import com.typesafe.scalalogging.log4j._
 
-class StreamEventListenersManager {
+class StreamEventListenersManager extends Logging {
   def init(epService: EPServiceProvider) = {
+
+    logger.info("Initializing esper event listener")
+
     (new NewBookingEventListener).init(epService)
-//      (new NewBookingPricingListener).init(epService)
-      (new BookingAvgNetRevenue(10 seconds)).init(epService)
-      (new BookingCountWindow).init(epService)
+    (new BookingAvgNetRevenue(10 seconds)).init(epService)
+    (new BookingCountWindow).init(epService)
   }
 }
 
-// TODO: Each listener should be an Observable that everyone can subscribe to
-// - Then we can compose streams
-
-abstract class BinlogStreamEventListener extends UpdateListener  {
+abstract class BinlogStreamEventListener extends UpdateListener with Logging  {
   def init(epService: EPServiceProvider) = {
     val statement = epService.getEPAdministrator.createEPL(expression)
     statement.addListener(this)
@@ -28,21 +27,13 @@ abstract class BinlogStreamEventListener extends UpdateListener  {
   def expression: String
 }
 
-class NewBookingEventListener extends BinlogStreamEventListener {
+class NewBookingEventListener extends BinlogStreamEventListener with StatsdSender {
   override def expression = "SELECT * FROM BinlogStreamEvent where tableName='bookings'"
 
   def update(newEvents: Array[EventBean], oldEvents: Array[EventBean]) {
     val event = newEvents(0)
-    //println(event.get("field('net_revenue')"))
-  }
-}
-
-class NewBookingPricingListener extends BinlogStreamEventListener {
-  override def expression = "SELECT * FROM BinlogStreamEvent where tableName='booking_pricing_details'"
-
-  def update(newEvents: Array[EventBean], oldEvents: Array[EventBean]) {
-    val event = newEvents(0)
-    //    println(event.get("field('net_revenue')"))
+    logger.info("New booking received")
+    statsd.increment("gush.booking.total")
   }
 }
 
@@ -63,7 +54,7 @@ abstract class WindowedEvent(val interval: Duration = 5 seconds) extends BinlogS
   }
 }
 
-class BookingAvgNetRevenue(interval: Duration = 10 seconds) extends WindowedEvent(interval) {
+class BookingAvgNetRevenue(interval: Duration = 10 seconds) extends WindowedEvent(interval) with StatsdSender {
   override def expression = {
     val inSecs = interval.toSeconds
 
@@ -75,13 +66,14 @@ class BookingAvgNetRevenue(interval: Duration = 10 seconds) extends WindowedEven
     val event = newEvents(0)
     val avg = Option(event.get("avg_rev")).map(x => x.asInstanceOf[Double])
 
-    println(s"Avg net revenue of last ${interval.toSeconds} seconds: ${colorize(avg)}")
+    logger.info(s"Avg net revenue of last ${interval.toSeconds} seconds: ${colorize(avg)}")
 
+    avg.map(x => statsd.gauge("gush.booking.avg_revenue_10seconds", x))
     avg.map(x => lastVal = x)
   }
 }
 
-class BookingCountWindow(interval: Duration = 10 seconds) extends WindowedEvent(interval) {
+class BookingCountWindow(interval: Duration = 10 seconds) extends WindowedEvent(interval) with StatsdSender {
   override def expression = {
     val inSecs = interval.toSeconds
 
@@ -93,8 +85,9 @@ class BookingCountWindow(interval: Duration = 10 seconds) extends WindowedEvent(
     val event = newEvents(0)
     val count = Option(event.get("count")).map(x => x.asInstanceOf[Long].toDouble)
 
-    println(s"Number of bookings in last ${interval.toSeconds} seconds: ${colorize(count)}")
+    logger.info(s"Number of bookings in last ${interval.toSeconds} seconds: ${colorize(count)}")
 
+    count.map(x => statsd.increment("gush.booking.count_10seconds", x.toInt))
     count.map(x => lastVal = x)
   }
 }

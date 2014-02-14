@@ -12,7 +12,9 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 
 libraryDependencies += "com.typesafe" %% "scalalogging-log4j" % "1.0.1"
 
-libraryDependencies += "log4j" % "log4j" % "1.2.17"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.0-beta9"
+
+// libraryDependencies += "log4j" % "log4j" % "1.2.17"
 
 libraryDependencies += "com.github.shyiko" % "mysql-binlog-connector-java" % "0.1.0-SNAPSHOT"
 

@@ -34,10 +34,10 @@ class BinlogToEsper(cepService: EPServiceProvider) {
   }
 
   def init = {
-    //val stream = remoteStream
-    val stream = localStream
+    val stream = remoteStream
+   // val stream = localStream
     val o = stream.inserts
 
-    o.subscribe { e => { println(e) } }
+    o.subscribe(sendToEsper(_))
   }
 }
