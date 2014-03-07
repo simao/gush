@@ -17,10 +17,9 @@ class Gush {
   def startCrunching = {
     val cepService = Esper.setup
 
-    (new StreamEventListenersManager).init(cepService)
+    new StreamEventListenersManager(cepService).init
 
-    // (new BinlogToEsper(cepService)).init
-    (new BinlogToEsper(cepService)).init
+    new BinlogToEsper(cepService).init
   }
 }
 

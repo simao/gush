@@ -3,10 +3,6 @@ package binlog
 import binlog._
 import esper._
 
-import com.github.shyiko.mysql.binlog.network.SocketFactory
-
-import java.net.Socket
-
 import com.github.shyiko.mysql.binlog._
 import com.github.shyiko.mysql.binlog.event._
 import com.github.shyiko.mysql.binlog.BinaryLogClient._
@@ -50,6 +46,7 @@ class BinlogRemoteReader(val host: String, val port: Int, val user: String, val 
       client.connect
 
       // TODO: Doesnt work with multiple subscribers unless this is executed for each subscriber
+      // Just because of `disconnect`
       Subscription {
         client.unregisterEventListener(eventListener)
         client.unregisterLifecycleListener(lifecycleListener)
