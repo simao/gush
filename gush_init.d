@@ -13,6 +13,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Gush daemon"
 NAME=gush
 DAEMON=/opt/gush/gush.sh
+JAVA_BIN="/usr/bin/java" # used by `start-stop-daemon` to check if PID is running
 PIDDIR=/opt/gush
 PIDFILE=$PIDDIR/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
@@ -53,12 +54,8 @@ do_start()
 
     chown $USER:$GROUP $PIDDIR
 
-    if [[ -e $PIDFILE ]] &&  ps -p "$(cat $PIDFILE)" > /dev/null
-    then
-        return 1
-    else
-        start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON --chuid $USER || return 2
-    fi
+    start-stop-daemon --start --quiet --test --pidfile $PIDFILE --exec $JAVA_BIN --startas $DAEMON --chuid $USER || return 1
+    start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --exec $JAVA_BIN --startas $DAEMON --chuid $USER || return 2
 }
 
 #
