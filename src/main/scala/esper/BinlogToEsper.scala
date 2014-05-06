@@ -19,7 +19,7 @@ class BinlogEventStream(eventStream: BinlogSqlStream) {
   }
 }
 
-class BinlogToEsper(cepService: EPServiceProvider) {
+class BinlogToEsper(cepService: EPServiceProvider, user: String, password: String, host: String, port: Int) {
   def sendToEsper(event: BinlogEvent) = {
     val esperEvent = new BinlogStreamEvent(event.tableName, event.fields)
     cepService.getEPRuntime.sendEvent(esperEvent)
@@ -30,12 +30,12 @@ class BinlogToEsper(cepService: EPServiceProvider) {
   }
 
   def remoteStream = {
-    new BinlogEventStream(new BinlogRemoteReader("127.0.0.1", 9797, "replication", ""))
+    new BinlogEventStream(new BinlogRemoteReader(host, port, user, password))
   }
 
   def init = {
-    val stream = remoteStream
    // val stream = localStream
+    val stream = remoteStream
     val o = stream.inserts
 
     o.subscribe(sendToEsper(_))

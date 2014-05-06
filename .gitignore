@@ -56,3 +56,4 @@ project/plugins/project/
 .idea
 gush-intro
 *.iml
+/gush.config.yml

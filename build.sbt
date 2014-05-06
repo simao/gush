@@ -12,7 +12,7 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 
 libraryDependencies += "com.typesafe" %% "scalalogging-log4j" % "1.0.1"
 
-libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.0-beta9"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.0-rc1"
 
 libraryDependencies += "com.github.shyiko" % "mysql-binlog-connector-java" % "0.1.0-SNAPSHOT"
 
@@ -23,3 +23,6 @@ libraryDependencies += "com.akiban" % "akiban-sql-parser" % "1.0.16"
 libraryDependencies += "com.espertech" % "esper" % "4.6.0"
 
 libraryDependencies += "com.netflix.rxjava" % "rxjava-scala" % "0.16.0"
+
+libraryDependencies += "org.yaml" % "snakeyaml" % "1.13"
+

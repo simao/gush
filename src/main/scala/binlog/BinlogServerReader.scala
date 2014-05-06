@@ -8,6 +8,8 @@ import com.github.shyiko.mysql.binlog.event._
 import com.github.shyiko.mysql.binlog.BinaryLogClient._
 import rx.lang.scala.{Observable, Subscription, Observer}
 
+import com.typesafe.scalalogging.log4j._
+
 class EventListener(observer: Observer[String]) extends BinaryLogClient.EventListener {
   def onEvent(event: Event) {
     val header = event.getHeader.asInstanceOf[EventHeaderV4]
@@ -18,8 +20,10 @@ class EventListener(observer: Observer[String]) extends BinaryLogClient.EventLis
   }
 }
 
-class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.LifecycleListener {
-  def onConnect(client: BinaryLogClient) = Unit
+class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.LifecycleListener  with Logging {
+  def onConnect(client: BinaryLogClient) {
+    logger.info(s"Connected to mysql master. Filename: ${client.getBinlogFilename}, position: ${client.getBinlogPosition}")
+  }
 
   def onCommunicationFailure(client: BinaryLogClient, ex: Exception) {
     observer.onError(ex)

@@ -4,10 +4,19 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS}|%highlight{%level{length=1}}|%msg%n%throwable"/>
     </Console>
+    <RollingFile name="RollingFile" fileName="logs/gush.log"
+                 filePattern="logs/gush-%d{MM-dd-yyyy}.log.gz">
+      <DefaultRolloverStrategy max="1"/>
+      <PatternLayout pattern="%d{HH:mm:ss.SSS}|%level{length=1}|%msg%n%throwable{full}"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+      </Policies>
+    </RollingFile>
   </Appenders>
   <Loggers>
     <Root level="info">
       <AppenderRef ref="Console"/>
+      <AppenderRef ref="RollingFile"/>
     </Root>
   </Loggers>
 </Configuration>

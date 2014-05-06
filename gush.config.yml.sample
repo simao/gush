@@ -1,0 +1,4 @@
+user: <user>
+password: <pass>
+host: localhost
+port: 9797
