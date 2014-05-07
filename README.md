@@ -94,7 +94,7 @@ The current approach has a few problems, for example the `project` dir
 is not synced on deploy, and this dir can hold important information
 for the compilation.
 
-## Use Akk to implement publish/subscribe
+## Use Akka to implement publish/subscribe
 
 We can start using `akka` to manage the publish/subscribe nature of
 the esper <-> gush communication.
