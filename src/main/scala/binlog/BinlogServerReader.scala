@@ -42,16 +42,12 @@ class BinlogRemoteReader(val host: String, val port: Int, val user: String, val 
 
   def observableFrom(client: BinaryLogClient) = {
     Observable.create((o: Observer[String]) => {
-      // check if client is connected and call onError if it's not
-
       val eventListener = new BinlogEventListener(o)
       val lifecycleListener = new LifecycleListener(o)
       client.registerEventListener(eventListener)
       client.registerLifecycleListener(lifecycleListener)
 
       client.connect
-
-      // TODO: Doesnt work with multiple subscribers unless this is executed for each subscriber, a disconnect will disconnect all subscribers!
 
       Subscription {
         client.unregisterEventListener(eventListener)
@@ -61,11 +57,8 @@ class BinlogRemoteReader(val host: String, val port: Int, val user: String, val 
     })
   }
 
-  // TODO: Will only connect when the returned observable is subscribed to
-  // TODO: I think everytime `subscribe` is called on the obverser, we'll connect again. (Maybe not)
   override def events = {
     val client = new BinaryLogClient(host, port, user, password)
-
     val observable = observableFrom(client)
 
     observable
