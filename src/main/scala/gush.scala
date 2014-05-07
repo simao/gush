@@ -9,14 +9,6 @@ import java.io.{FileInputStream, File}
 
 import com.typesafe.scalalogging.log4j._
 
-object Esper {
-  def setup: EPServiceProvider = {
-    val config = new Configuration()
-    config.addEventType("BinlogStreamEvent", classOf[BinlogStreamEvent].getName)
-    EPServiceProviderManager.getDefaultProvider(config)
-  }
-}
-
 class Gush {
   def startCrunching(config: Map[String, String]) = {
     val user = config("user")

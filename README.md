@@ -105,7 +105,14 @@ We can also start using `akka` to manage the publish/subscribe nature
 of the esper <-> gush communication. That would be simpler than using
 `rx-scala` and probably more future proof.
 
+## Remove hardcoded configuration values
+
+Many configuration data is hardcoded into the code, machine hosts for
+example. They should all be included in `gush.config.yml` and the app
+should use those values.
+
 ## Other improvements
 
 No patch is too small and all PR will be considered, just start doing
 anything you would like to see implemented.
+
