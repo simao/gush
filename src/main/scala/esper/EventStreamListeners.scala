@@ -11,8 +11,10 @@ import com.typesafe.scalalogging.log4j._
 
 import util._
 
-class StreamEventListenersManager(epService: EPServiceProvider) extends Logging {
+class EsperEventListenersManager extends Logging {
   def init = {
+    val epService = Esper.setup
+
     logger.info("Initializing esper event listener")
 
     val builder = new EventObserverBuilder(epService)
@@ -20,6 +22,8 @@ class StreamEventListenersManager(epService: EPServiceProvider) extends Logging 
     (new NewBookingEventListener).init(builder)
     (new BookingAvgNetRevenue(10 seconds)).init(builder)
     (new BookingCountWindow).init(builder)
+
+    epService
   }
 }
 
@@ -70,7 +74,7 @@ abstract class WindowedEvent(val interval: Duration = 5 seconds) {
 
 class NewBookingEventListener extends StatsdSender with Logging {
   def init(event_builder: EventObserverBuilder) = {
-    val exp = "SELECT * FROM BinlogStreamEvent where tableName='bookings'"
+    val exp = "SELECT * FROM BinlogEsperEvent where tableName='bookings'"
     event_builder
       .observer(exp)
       .map(_ => statsd.increment("gush.booking.total"))
@@ -80,7 +84,7 @@ class NewBookingEventListener extends StatsdSender with Logging {
 
 class BookingAvgNetRevenue(interval: Duration = 10 seconds) extends WindowedEvent(interval) with StatsdSender with Logging {
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT avg(asFloat('net_revenue')) as avg_rev FROM BinlogStreamEvent.win:time_batch($intervalSecs second) where tableName='booking_pricing_details'"
+    val exp = s"SELECT avg(asFloat('net_revenue')) as avg_rev FROM BinlogEsperEvent.win:time_batch($intervalSecs second) where tableName='booking_pricing_details'"
 
     event_builder
       .observer(exp)
@@ -97,7 +101,7 @@ class BookingAvgNetRevenue(interval: Duration = 10 seconds) extends WindowedEven
 
 class BookingCountWindow(interval: Duration = 10 seconds) extends WindowedEvent(interval) with StatsdSender with Logging {
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT count(*) as count FROM BinlogStreamEvent.win:time_batch($intervalSecs second) where tableName='bookings'"
+    val exp = s"SELECT count(*) as count FROM BinlogEsperEvent.win:time_batch($intervalSecs second) where tableName='bookings'"
 
     event_builder
       .observer(exp)

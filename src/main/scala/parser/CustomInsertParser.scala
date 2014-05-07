@@ -63,8 +63,8 @@ class CustomInsertParser extends JavaTokenParsers {
 
   def apply(statement: String): Try[InsertStatement] = {
     parseAll(insertSingle, cleanForParsing(statement)) match {
-      case Success(result, _) => util.Success(result)
-      case NoSuccess(msg, _) => util.Failure(new Exception(msg))
+      case Success(result, _) => scala.util.Success(result)
+      case NoSuccess(msg, _) => scala.util.Failure(new Exception(msg))
     }
   }
 }

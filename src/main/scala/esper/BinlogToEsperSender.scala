@@ -12,16 +12,15 @@ trait BinlogSqlStream {
 
 class BinlogEventStream(eventStream: BinlogSqlStream) {
   def inserts: Observable[BinlogEvent] = {
-    // TODO: Not parsing updates
     eventStream.events.filter(s => s.startsWith("INSERT INTO"))
       .filter(s => !s.contains("ON DUPLICATE KEY UPDATE"))
       .map(s => BinlogEvent(s))
   }
 }
 
-class BinlogToEsper(cepService: EPServiceProvider, user: String, password: String, host: String, port: Int) {
+class BinlogToEsperSender(cepService: EPServiceProvider, user: String, password: String, host: String, port: Int) {
   def sendToEsper(event: BinlogEvent) = {
-    val esperEvent = new BinlogStreamEvent(event.tableName, event.fields)
+    val esperEvent = new BinlogEsperEvent(event.tableName, event.fields)
     cepService.getEPRuntime.sendEvent(esperEvent)
   }
 

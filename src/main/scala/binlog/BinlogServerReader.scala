@@ -10,7 +10,7 @@ import rx.lang.scala.{Observable, Subscription, Observer}
 
 import com.typesafe.scalalogging.log4j._
 
-class EventListener(observer: Observer[String]) extends BinaryLogClient.EventListener {
+class BinlogEventListener(observer: Observer[String]) extends BinaryLogClient.EventListener {
   def onEvent(event: Event) {
     val header = event.getHeader.asInstanceOf[EventHeaderV4]
     if(header.getEventType.equals(EventType.QUERY)) {
@@ -42,15 +42,17 @@ class BinlogRemoteReader(val host: String, val port: Int, val user: String, val 
 
   def observableFrom(client: BinaryLogClient) = {
     Observable.create((o: Observer[String]) => {
-      val eventListener = new EventListener(o)
+      // check if client is connected and call onError if it's not
+
+      val eventListener = new BinlogEventListener(o)
       val lifecycleListener = new LifecycleListener(o)
       client.registerEventListener(eventListener)
       client.registerLifecycleListener(lifecycleListener)
 
       client.connect
 
-      // TODO: Doesnt work with multiple subscribers unless this is executed for each subscriber
-      // Just because of `disconnect`
+      // TODO: Doesnt work with multiple subscribers unless this is executed for each subscriber, a disconnect will disconnect all subscribers!
+
       Subscription {
         client.unregisterEventListener(eventListener)
         client.unregisterLifecycleListener(lifecycleListener)

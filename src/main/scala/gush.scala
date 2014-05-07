@@ -1,9 +1,7 @@
 import binlog._
 import esper._
 
-import org.apache.log4j.Level
 import scala.collection.JavaConversions._
-import com.espertech.esper.client.{Configuration, EPServiceProvider, EPServiceProviderManager}
 import org.yaml.snakeyaml.Yaml
 import java.io.{FileInputStream, File}
 
@@ -16,11 +14,9 @@ class Gush {
     val host = config("host")
     val port = config("port").toInt
 
-    val cepService = Esper.setup
+    val cepService = (new EsperEventListenersManager).init
 
-    new StreamEventListenersManager(cepService).init
-
-    new BinlogToEsper(cepService, user, password, host, port).init
+    new BinlogToEsperSender(cepService, user, password, host, port).init
   }
 }
 
