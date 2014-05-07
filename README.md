@@ -94,16 +94,14 @@ The current approach has a few problems, for example the `project` dir
 is not synced on deploy, and this dir can hold important information
 for the compilation.
 
-## Stop using `rx-scala`
+## Use Akk to implement publish/subscribe
 
-This complicates things quite a bit without getting us anything in
-Return, at least for the time being, it feels a bit over-engineered.
+We can start using `akka` to manage the publish/subscribe nature of
+the esper <-> gush communication.
 
-Stop using `rx-scala` and just use plain scala `Streams`.
-
-We can also start using `akka` to manage the publish/subscribe nature
-of the esper <-> gush communication. That would be simpler than using
-`rx-scala` and probably more future proof.
+The idea is to kill the dependency between binlog classes <-> esper
+classes, and use the actor model instead of having these two modules
+so tied together.
 
 ## Remove hardcoded configuration values
 
