@@ -1,14 +1,10 @@
 import binlog._
 import esper._
-
-import scala.collection.JavaConversions._
-import org.yaml.snakeyaml.Yaml
-import java.io.{FileInputStream, File}
-
 import com.typesafe.scalalogging.log4j._
+import util.GushConfig
 
 class Gush {
-  def startCrunching(config: Map[String, String]) = {
+  def startCrunching(implicit config: GushConfig) = {
     val user = config("user")
     val password = config("password")
     val host = config("host")
@@ -22,20 +18,9 @@ class Gush {
 
 object GushApp extends Logging {
 
-  def loadConfig(path: String) = {
-    val input = new FileInputStream(new File(path))
-    val yaml = new Yaml()
-    val data = yaml.load(input)
-
-    data.asInstanceOf[java.util.Map[String, String]].toMap
-  }
-
-
   def main(args: Array[String]) {
     try {
-      val config = loadConfig("gush.config.yml")
-
-      (new Gush).startCrunching(config)
+      (new Gush).startCrunching
     } catch {
       case ex: Throwable => {
         logger.error("Fatal error occurred: ", ex)

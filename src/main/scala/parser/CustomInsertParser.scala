@@ -4,6 +4,8 @@ import scala.util.{Try, Success, Failure}
 import scala.util.parsing.combinator._
 import scala.util.parsing.combinator.syntactical._
 
+case class InsertStatement(tableName: String, fields: Map[String, String]) {}
+
 class CustomInsertParser extends JavaTokenParsers {
   def quotedStr = "'" ~> """[^']*""".r <~ "'"
 
@@ -44,10 +46,7 @@ class CustomInsertParser extends JavaTokenParsers {
   }
 
   def insertMulti: Parser[List[InsertStatement]] = {
-    insert ^^ w
-  }
-
-  private def w: PartialFunction[String ~ List[String] ~ List[List[String]], List[InsertStatement]] = {
+    insert ^^ {
       case tableName ~ cols ~ vals => {
         vals.map(v => {
           assert(cols.size == v.size)
@@ -56,8 +55,9 @@ class CustomInsertParser extends JavaTokenParsers {
           InsertStatement(tableName, fields)
         })
       }
-    }  
-    
+    }
+  }
+
   // TODO: Well I need to make this work for now
   private def cleanForParsing(s: String) = s.replaceAll("""\\'""", "X")
 

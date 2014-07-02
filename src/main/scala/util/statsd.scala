@@ -1,10 +1,12 @@
 package util
 
 import java.net.{DatagramPacket, InetAddress, DatagramSocket}
+import com.typesafe.scalalogging.log4j._
 
-class Statsd {
+class Statsd(implicit val config: GushConfig) extends Logging {
   val socket = new DatagramSocket
-  val statsd_address = InetAddress.getByName("wimdu-dev04")
+  val statsd_address = InetAddress.getByName(config("statsd_host"))
+  val statsd_port = 8125
 
   def gauge(key: String, value: Double) = {
     send(s"${key}:${value}|g")
@@ -15,8 +17,10 @@ class Statsd {
   }
 
   def send(metric: String) = {
+    logger.debug(s"statsd: ${metric}")
+
     val buf = metric.getBytes
-    val packet = new DatagramPacket(buf, buf.length, statsd_address, 8125)
+    val packet = new DatagramPacket(buf, buf.length, statsd_address, statsd_port)
     socket.send(packet)
   }
 }
