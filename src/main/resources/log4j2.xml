@@ -1,20 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="INFO">
+<Configuration status="DEBUG">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS}|%highlight{%level{length=1}}|%msg%n%throwable"/>
     </Console>
+
+    <RollingFile name="RollingFile" fileName="logs/gush.log"
+                 filePattern="logs/gush-%i.log.gz">
+
+      <PatternLayout pattern="%d{HH:mm:ss.SSS}|%level{length=1}|%msg%n%throwable{full}"/>
+
+      <DefaultRolloverStrategy max="2"/>
+
+      <Policies>
+        <SizeBasedTriggeringPolicy size="1 GB"/>
+      </Policies>
+    </RollingFile>
+
+    <!-- 
     <RollingFile name="RollingFile" fileName="logs/gush.log"
                  filePattern="logs/gush-%d{MM-dd-yyyy}.log.gz">
-      <DefaultRolloverStrategy max="1"/>
+      <DefaultRolloverStrategy max="1"/>d
       <PatternLayout pattern="%d{HH:mm:ss.SSS}|%level{length=1}|%msg%n%throwable{full}"/>
       <Policies>
         <TimeBasedTriggeringPolicy />
       </Policies>
     </RollingFile>
+    -->
+
   </Appenders>
   <Loggers>
-    <Root level="info">
+    <Root level="debug">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="RollingFile"/>
     </Root>
