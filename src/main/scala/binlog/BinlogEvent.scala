@@ -5,14 +5,13 @@ import scala.util.{Success, Failure}
 import com.espertech.esper.client.{EventBean, UpdateListener, EPServiceProvider}
 import scala.reflect.BeanProperty
 
-
 object BinlogEvent {
   def apply(raw_sql: String) = {
     def parser = new CustomInsertParser
 
     parser(raw_sql) match {
       case Success(m) => { new BinlogEvent(raw_sql, m.tableName,  m.fields) }
-      case Failure(t) => throw t
+      case Failure(t) => throw new Exception(s"Error Parsing: ${raw_sql}: ", t)
     }
   }
 }
