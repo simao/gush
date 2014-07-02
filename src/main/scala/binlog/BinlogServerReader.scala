@@ -2,6 +2,7 @@ package binlog
 
 import binlog._
 import esper._
+import util.GushConfig
 
 import com.github.shyiko.mysql.binlog._
 import com.github.shyiko.mysql.binlog.event._
@@ -10,13 +11,24 @@ import rx.lang.scala.{Observable, Subscription, Observer}
 
 import com.typesafe.scalalogging.log4j._
 
-class BinlogEventListener(observer: Observer[String]) extends BinaryLogClient.EventListener {
+class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with Logging {
   def onEvent(event: Event) {
     val header = event.getHeader.asInstanceOf[EventHeaderV4]
     if(header.getEventType.equals(EventType.QUERY)) {
       val data = event.getData.asInstanceOf[QueryEventData]
-      observer.onNext(data.getSql)
+      if (ignored_event(data.getSql))
+      {
+        logger.trace(s"Event ignored: ${data.getSql.slice(0, 30)}")
+      } else {
+        logger.debug(s"Sending binlog event to observer (${data.getSql.slice(0, 30)})")
+        observer.onNext(data.getSql)
+      }
     }
+  }
+
+  def ignored_event(sqlStatement: String) = {
+    config.ignored_tables.exists { tn => sqlStatement.contains(s"`$tn`") } ||
+    config.ignored_prefixes.exists { p => sqlStatement.startsWith(p) }
   }
 }
 
@@ -34,6 +46,7 @@ class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.Life
   }
 
   def onDisconnect(client: BinaryLogClient) {
+    logger.warn("mysql binlog disconnected")
     observer.onCompleted
   }
 }
