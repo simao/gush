@@ -1,9 +1,8 @@
 package binlog
 
 import parser._
-import scala.util.{Success, Failure}
-import com.espertech.esper.client.{EventBean, UpdateListener, EPServiceProvider}
-import scala.reflect.BeanProperty
+
+import scala.util.{Failure, Success}
 
 object BinlogEvent {
   def apply(raw_sql: String) = {

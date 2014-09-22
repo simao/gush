@@ -1,8 +1,7 @@
 package parser
 
-import scala.util.{Try, Success, Failure}
+import scala.util.Try
 import scala.util.parsing.combinator._
-import scala.util.parsing.combinator.syntactical._
 
 case class InsertStatement(tableName: String, fields: Map[String, String]) {}
 

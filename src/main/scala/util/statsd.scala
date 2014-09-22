@@ -1,9 +1,10 @@
 package util
 
 import java.net.{DatagramPacket, InetAddress, DatagramSocket}
-import com.typesafe.scalalogging.log4j._
 
-class Statsd(implicit val config: GushConfig) extends Logging {
+import com.typesafe.scalalogging.StrictLogging
+
+class Statsd(implicit val config: GushConfig) extends StrictLogging {
   val socket = new DatagramSocket
   val statsd_address = InetAddress.getByName(config("statsd_host"))
   val statsd_port = 8125

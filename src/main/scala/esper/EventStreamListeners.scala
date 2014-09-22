@@ -1,17 +1,14 @@
 package esper
 
-import scala.language.postfixOps
-import scala.concurrent.duration._
-import scala.Console._
-
-import rx.lang.scala.{Observable, Subscription, Observer}
-
-import com.espertech.esper.client.{EventBean, UpdateListener, EPServiceProvider}
-import com.typesafe.scalalogging.log4j._
-
+import com.espertech.esper.client.{EPServiceProvider, EventBean, UpdateListener}
+import com.typesafe.scalalogging.StrictLogging
+import rx.lang.scala.{Observable, Observer, Subscription}
 import util._
 
-class EsperEventListenersManager extends Logging {
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
+class EsperEventListenersManager extends StrictLogging {
   def init = {
     val epService = Esper.setup
 
@@ -30,7 +27,7 @@ class EsperEventListenersManager extends Logging {
   }
 }
 
-class EventObserverBuilder(epService: EPServiceProvider) extends Logging {
+class EventObserverBuilder(epService: EPServiceProvider) extends StrictLogging {
   def createEsperListener(expression: String, callback: EventBean => Unit) = {
     val statement = epService.getEPAdministrator.createEPL(expression)
 
@@ -60,7 +57,7 @@ abstract class WindowedEvent(val interval: Duration) {
   val intervalSecs = interval.toSeconds
 }
 
-abstract class WindowedCount(interval: Duration) extends WindowedEvent(interval) with StatsdSender with Logging {
+abstract class WindowedCount(interval: Duration) extends WindowedEvent(interval) with StatsdSender with StrictLogging {
 
   def table_name: String
   def statsd_key_name: String
@@ -78,7 +75,7 @@ abstract class WindowedCount(interval: Duration) extends WindowedEvent(interval)
   }
 }
 
-abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) with StatsdSender with Logging {
+abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) with StatsdSender with StrictLogging {
 
   def table_name: String
   def field_name: String
@@ -99,7 +96,7 @@ abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) w
 
 }
 
-abstract class EventCount extends StatsdSender with Logging {
+abstract class EventCount extends StatsdSender with StrictLogging {
   def table_name: String
   def statsd_key_name: String
 

@@ -1,31 +1,36 @@
-import binlog._
+import com.espertech.esper.client.EPServiceProvider
+import com.typesafe.scalalogging.StrictLogging
 import esper._
-import com.typesafe.scalalogging.log4j._
-import util.GushConfig
+import util.{GushConfig, StatsdSender}
 
-class Gush {
-  def startCrunching(implicit config: GushConfig) = {
+class Gush(implicit config: GushConfig) extends StatsdSender with StrictLogging {
+  def startCrunching = {
+    statsd.increment("gush.startup")
+    val cepService = (new EsperEventListenersManager).init
+    startBinlogLoop(cepService)
+  }
+
+  def startBinlogLoop(cepService: EPServiceProvider): Unit = {
     val user = config("user")
     val password = config("password")
     val host = config("host")
     val port = config("port").toInt
 
-    val cepService = (new EsperEventListenersManager).init
+    try {
+      new BinlogToEsperSender(cepService, user, password, host, port).init
+    } catch {
+      case ex: Throwable => {
+        statsd.increment("gush.exceptions.loop")
+        logger.error("Error occurred: ", ex)
+      }
+    }
 
-    new BinlogToEsperSender(cepService, user, password, host, port).init
+    startBinlogLoop(cepService)
   }
 }
 
-object GushApp extends Logging {
-
+object GushApp extends StatsdSender {
   def main(args: Array[String]) {
-    try {
-      (new Gush).startCrunching
-    } catch {
-      case ex: Throwable => {
-        logger.error("Fatal error occurred: ", ex)
-        throw ex
-      }
-    }
+    (new Gush).startCrunching
   }
 }

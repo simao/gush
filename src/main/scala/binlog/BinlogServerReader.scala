@@ -1,17 +1,13 @@
 package binlog
 
-import binlog._
-import esper._
-import util.GushConfig
-
 import com.github.shyiko.mysql.binlog._
 import com.github.shyiko.mysql.binlog.event._
-import com.github.shyiko.mysql.binlog.BinaryLogClient._
-import rx.lang.scala.{Observable, Subscription, Observer}
+import com.typesafe.scalalogging.StrictLogging
+import esper._
+import rx.lang.scala.{Observable, Observer, Subscription}
+import util.GushConfig
 
-import com.typesafe.scalalogging.log4j._
-
-class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with Logging {
+class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with StrictLogging {
   def onEvent(event: Event) {
     val header = event.getHeader.asInstanceOf[EventHeaderV4]
     if(header.getEventType.equals(EventType.QUERY)) {
@@ -32,7 +28,7 @@ class BinlogEventListener(observer: Observer[String])(implicit val config: GushC
   }
 }
 
-class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.LifecycleListener  with Logging {
+class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.LifecycleListener  with StrictLogging {
   def onConnect(client: BinaryLogClient) {
     logger.info(s"Connected to mysql master. Filename: ${client.getBinlogFilename}, position: ${client.getBinlogPosition}")
   }

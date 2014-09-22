@@ -1,6 +1,6 @@
 package esper
 
-import scala.reflect.BeanProperty
+import scala.beans.BeanProperty
 
 case class BinlogEsperEvent(@BeanProperty val tableName: String,
                              @BeanProperty val fields: Map[String, String]) {
