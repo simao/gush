@@ -1,4 +1,10 @@
-user: <user>
-password: <pass>
-host: localhost
-port: 9797
+mysql_user: <user>
+mysql_password: <pass>
+mysql_host: <host>
+mysql_port: 3306
+ssh_tunnel_host: <host>
+ssh_tunnel_user: flats
+statsd_host: localhost
+ignored_tables: ['daily_offer_details', 'web_calendars', 'web_calendar_events', 'photo_metadata', 'web_calendar_failures']
+ignored_statements_prefixes: ['BEGIN', 'UPDATE', 'COMMIT', 'DELETE']
+

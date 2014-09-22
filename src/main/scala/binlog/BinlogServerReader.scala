@@ -2,7 +2,8 @@ package binlog
 
 import com.github.shyiko.mysql.binlog._
 import com.github.shyiko.mysql.binlog.event._
-import com.typesafe.scalalogging.StrictLogging
+import com.jcraft.jsch.JSch
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import esper._
 import rx.lang.scala.{Observable, Observer, Subscription}
 import util.GushConfig
@@ -43,11 +44,11 @@ class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.Life
 
   def onDisconnect(client: BinaryLogClient) {
     logger.warn("mysql binlog disconnected")
-    observer.onCompleted
+    observer.onCompleted()
   }
 }
 
-class BinlogRemoteReader(val host: String, val port: Int, val user: String, val password: String) extends BinlogSqlStream {
+class BinlogRemoteReader(config: GushConfig) extends BinlogSqlStream with LazyLogging {
 
   def observableFrom(client: BinaryLogClient) = {
     Observable.create((o: Observer[String]) => {
@@ -56,20 +57,62 @@ class BinlogRemoteReader(val host: String, val port: Int, val user: String, val 
       client.registerEventListener(eventListener)
       client.registerLifecycleListener(lifecycleListener)
 
-      client.connect
+      client.connect()
 
       Subscription {
         client.unregisterEventListener(eventListener)
         client.unregisterLifecycleListener(lifecycleListener)
-        client.disconnect
+        client.disconnect()
       }
     })
   }
 
-  override def events = {
-    val client = new BinaryLogClient(host, port, user, password)
-    val observable = observableFrom(client)
+  def setupTunnelledClient(): Option[BinaryLogClient] = {
+    for {
+      host <- config.mysqlHost
+      port <- config.mysqlPort
+      user <- config.mysqlUser
+      password <- config.mysqlPassword
+      sshAddress <- config.sshTunnelAddress
+      sshTunnelUser <- config.sshTunnelUser
+    } yield {
+      val jsch = new JSch()
+      jsch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa")
 
-    observable
+      val session = jsch.getSession(sshTunnelUser, sshAddress)
+      session.setConfig("StrictHostKeyChecking", "no")
+
+      val lport = session.setPortForwardingL(0, host, port)
+
+      session.connect(3000)
+
+      logger.info(s"Forwarding 127.0.0.1:$lport to $host:$port")
+
+      new BinaryLogClient("127.0.0.1", lport, user, password)
+    }
+  }
+
+  def setupSimpleClient(): Option[BinaryLogClient] = {
+    for {
+      host <- config.mysqlHost
+      port <- config.mysqlPort
+      user <- config.mysqlUser
+      password <- config.mysqlPassword
+    } yield new BinaryLogClient(host, port, user, password)
+  }
+
+  def setupClient(): Option[BinaryLogClient] = {
+    config.sshTunnelAddress
+      .map(_ => setupTunnelledClient())
+      .getOrElse(setupClient())
+  }
+
+  override def events = {
+    setupClient() match {
+      case Some(client) =>
+        observableFrom(client)
+      case None =>
+        throw new Exception("Could not initialize binlog client with current config file")
+    }
   }
 }

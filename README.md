@@ -2,10 +2,10 @@
 
 CEP at Wimdu
 
-This app listens to a mysql binlog stream and sends events to ESPER so
+This app listens to a mysql binlog stream and sends events to Esper so
 they can be analyzed and queried.
 
-Once a new ESPER event is captured, it can be output to the console or
+Once a new Esper event is captured, it can be output to the console or
 sent to graphite. More observers can be easily added to implement new
 behaviors.
 
@@ -17,8 +17,7 @@ Make sure scala and sbt are installed and in `PATH`.
 
 1. `cp gush.config.yml.sample gush.config.yml`
 2. Open `gush.config.yml` and adjust values
-3. Setup ssh tunnels if necessary: `ssh wimdu-reporting02 -L 9797:wimdu-db04:3306`
-4. `sbt run`
+3. `sbt run`
 
 # Deploying
 
@@ -40,19 +39,6 @@ Currently `gush` only parses SQL updates. Would be nice to have UPDATE parsing
 Many code doesn't have tests. Would be a good idea to delete code and
 re write it test driven.
 
-## Upgrade scala and sbt
-
-We are still using scala 2.10 with sbt 0.12.
-
-## Improve deployment process
-
-Currently we use `sbt assembly` but this generates a 20MB jar that we
-need to upload to the server on each deploy.
-
-Would be nice to write some chef recipes to install scala and sbt and
-then the deploy script only needs to upload the new code. sbt can then
-handle dependencies and compilation.
-
 ## Writing more ESPER queries
 
 There are unlimited possibilities here, writing queries to whatever happens in the database, real time.
@@ -68,19 +54,11 @@ For example:
 Would be nice to have gush receive UDP packets with the same format as
 statsd.
 
-If we send these events to ESPER, we can then write queries that correlate statsd keys to database events, for example:
+If we send these events to Esper, we can then write queries that correlate statsd keys to database events, for example:
 
 - What is the CR since the last deploy?
 
 - Did the number of bookings increase since the last deploy?
-
-## Use another logging library
-
-scala-logging with a log4j backend is deprecated.
-
-We need to migrate to scala-logging with a sl4j provider. I think
-logback would be the best alternative as it's easier to migrate from
-log4j2.
 
 ## The deploy process is still a bit sketchy
 
@@ -94,20 +72,15 @@ The current approach has a few problems, for example the `project` dir
 is not synced on deploy, and this dir can hold important information
 for the compilation.
 
-## Use Akka to implement publish/subscribe
-
-We can start using `akka` to manage the publish/subscribe nature of
-the esper <-> gush communication.
-
-The idea is to kill the dependency between binlog classes <-> esper
-classes, and use the actor model instead of having these two modules
-so tied together.
-
 ## Remove hardcoded configuration values
 
 Many configuration data is hardcoded into the code, machine hosts for
 example. They should all be included in `gush.config.yml` and the app
 should use those values.
+
+## Write tests
+
+Delete code and re write it test driven
 
 ## Other improvements
 

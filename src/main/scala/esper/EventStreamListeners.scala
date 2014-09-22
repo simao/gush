@@ -33,7 +33,7 @@ class EventObserverBuilder(epService: EPServiceProvider) extends StrictLogging {
 
     val listener = new UpdateListener() {
       override def update(newEvents: Array[EventBean], oldEvents: Array[EventBean]) {
-        newEvents foreach (callback(_))
+        newEvents foreach callback
       }
     }
 
@@ -47,7 +47,6 @@ class EventObserverBuilder(epService: EPServiceProvider) extends StrictLogging {
   def observer(expression: String) = {
     Observable.create({observer: Observer[EventBean] =>
       val destroy_f = createEsperListener(expression, event => observer.onNext(event))
-
       Subscription { destroy_f() }
     })
   }
@@ -63,14 +62,14 @@ abstract class WindowedCount(interval: Duration) extends WindowedEvent(interval)
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT count(*) as count FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='${table_name}' OUTPUT LAST EVERY 30 SECONDS"
+    val exp = s"SELECT count(*) as count FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 30 SECONDS"
 
     event_builder
       .observer(exp)
       .map(e => Option(e.get("count")).map(x => x.asInstanceOf[Long].toDouble))
       .subscribe { count =>
         count.map(x => statsd.gauge(statsd_key_name, x.toInt))
-        logger.info(s"Number of ${table_name} in last ${intervalSecs} seconds: ${count}")
+        logger.info(s"Number of $table_name in last $intervalSecs seconds: $count")
     }
   }
 }
@@ -82,14 +81,14 @@ abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) w
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT avg(asFloat('${field_name}')) as ${field_name} FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='${table_name}' OUTPUT LAST EVERY 30 SECONDS"
+    val exp = s"SELECT avg(asFloat('$field_name')) as $field_name FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 30 SECONDS"
 
     event_builder
       .observer(exp)
       .map(e => Option(e.get(field_name)).map(x => x.asInstanceOf[Double]))
       .subscribe { avg => avg.map(x => {
           statsd.gauge(statsd_key_name, x)
-          logger.info(s"Avg ${field_name} of last ${intervalSecs} seconds: ${avg}")
+          logger.info(s"Avg $field_name of last $intervalSecs seconds: $avg")
       })
     }
   }

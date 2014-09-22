@@ -6,11 +6,11 @@ import com.typesafe.scalalogging.StrictLogging
 
 class Statsd(implicit val config: GushConfig) extends StrictLogging {
   val socket = new DatagramSocket
-  val statsd_address = InetAddress.getByName(config("statsd_host"))
+  val statsd_address = InetAddress.getByName(config.statsDHost.get)
   val statsd_port = 8125
 
   def gauge(key: String, value: Double) = {
-    send(s"${key}:${value}|g")
+    send(s"$key:${value}|g")
   }
 
   def increment(key: String, incr: Int = 1) = {

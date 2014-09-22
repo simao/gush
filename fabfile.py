@@ -11,9 +11,8 @@ def compile_project():
         run("sbt compile")
 
 def restart():
-    run('/etc/init.d/gush stop')
-    run('/etc/init.d/gush start')
-    
+    run('sudo supervisorctl restart gush')
+
 def deploy():
     target_dir = '/opt/gush/gush-sbt'
 

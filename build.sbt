@@ -26,3 +26,5 @@ libraryDependencies += "org.yaml" % "snakeyaml" % "1.13"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 
+libraryDependencies += "com.jcraft" % "jsch" % "0.1.51"
+
