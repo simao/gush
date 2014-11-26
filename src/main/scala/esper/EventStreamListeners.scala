@@ -19,10 +19,10 @@ class EsperEventListenersManager extends StrictLogging {
     (new NewBookingCount).init(builder)
     (new BookingAvgNetRevenue).init(builder)
     (new BookingsCount).init(builder)
+    (new BookingsCountLong).init(builder)
     (new NewUsersCount).init(builder)
     (new ReviewsAvg).init(builder)
     (new ReviewsCount).init(builder)
-
     epService
   }
 }
@@ -62,14 +62,14 @@ abstract class WindowedCount(interval: Duration) extends WindowedEvent(interval)
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT count(*) as count FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 30 SECONDS"
+    val exp = s"SELECT count(*) as count FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 10 SECONDS"
 
     event_builder
       .observer(exp)
       .map(e => Option(e.get("count")).map(x => x.asInstanceOf[Long].toDouble))
       .subscribe { count =>
         count.map(x => statsd.gauge(statsd_key_name, x.toInt))
-        logger.info(s"Number of $table_name in last $intervalSecs seconds: $count")
+        logger.info(s"Number of $table_name in last $intervalSecs seconds: ${count.getOrElse(0)}")
     }
   }
 }
@@ -81,14 +81,14 @@ abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) w
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT avg(asFloat('$field_name')) as $field_name FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 30 SECONDS"
+    val exp = s"SELECT avg(asFloat('$field_name')) as $field_name FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 10 SECONDS"
 
     event_builder
       .observer(exp)
       .map(e => Option(e.get(field_name)).map(x => x.asInstanceOf[Double]))
       .subscribe { avg => avg.map(x => {
           statsd.gauge(statsd_key_name, x)
-          logger.info(s"Avg $field_name of last $intervalSecs seconds: $avg")
+          logger.info(s"Avg $field_name of last $intervalSecs seconds: $x")
       })
     }
   }
@@ -117,26 +117,31 @@ class NewBookingCount extends EventCount {
 class BookingAvgNetRevenue extends WindowedAvg(1 hour) {
   def table_name = "booking_pricing_details"
   def field_name = "net_revenue"
-  def statsd_key_name = "gush.bookings.net_revenue.avg_1hour"
+  def statsd_key_name = "gush.bookings.net_revenue.avg_long"
 }
 
 class BookingsCount extends WindowedCount(1 hour) {
   def table_name = "bookings"
-  def statsd_key_name = "gush.bookings.count_1hour"
+  def statsd_key_name = "gush.bookings.count_long"
+}
+
+class BookingsCountLong extends WindowedCount(2 minutes) {
+  def table_name = "bookings"
+  def statsd_key_name = "gush.bookings.count_short"
 }
 
 class NewUsersCount extends WindowedCount(1 hour) {
   def table_name = "users"
-  def statsd_key_name = "gush.users.count_1hour"
+  def statsd_key_name = "gush.users.count_long"
 }
 
 class ReviewsAvg extends WindowedAvg(1 hour) {
   def table_name = "reviews"
   def field_name = "rating"
-  def statsd_key_name = "gush.reviews.rating.avg_1hour"
+  def statsd_key_name = "gush.reviews.rating.avg_long"
 }
 
 class ReviewsCount extends WindowedCount(1 hour) {
   def table_name = "reviews"
-  def statsd_key_name = "gush.reviews.count_1hour"
+  def statsd_key_name = "gush.reviews.count_long"
 }
