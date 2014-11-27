@@ -15,12 +15,12 @@ class BinlogEventStream(eventStream: BinlogSqlStream) {
     eventStream.events
       .filter(s => s.startsWith("INSERT INTO"))
       .filter(s => !s.contains("ON DUPLICATE KEY UPDATE"))
-      .map(s => BinlogEvent(s))
+      .flatMapIterable(s => BinlogEvent.parseAll(s))
   }
 }
 
 class BinlogToEsperSender(cepService: EPServiceProvider, config: GushConfig) extends StatsdSender with StrictLogging {
-  def sendToEsper(event: BinlogEvent) = {
+  def sendToEsper(event: BinlogEvent): Unit = {
     logger.debug(s"Sending event for table ${event.tableName} to ESPER")
     val esperEvent = new BinlogEsperEvent(event.tableName, event.fields)
     cepService.getEPRuntime.sendEvent(esperEvent)
@@ -30,21 +30,17 @@ class BinlogToEsperSender(cepService: EPServiceProvider, config: GushConfig) ext
     new BinlogEventStream(new BinlogRemoteReader(config))
   }
 
+  def handleStreamError[U](ex: Throwable): Observable[U] = {
+    logger.error("Error: ", ex)
+    statsd.increment("gush.exceptions.onError")
+    Observable.empty
+    // TODO: Should reconnect ...
+  }
+
   def init = {
-    val stream = remoteStream
-    val o = stream.inserts
-
-    o.onErrorFlatMap({(ex, value) => {
-      value.map(v => logger.error(s"Error processing: $v"))
-      logger.error("Error: ", ex)
-      statsd.increment("gush.exceptions.onError")
-
-      Observable.empty
-
-      // TODO: No reconnect ...
-      }
-    }).subscribe(
-      { binlog_event => sendToEsper(binlog_event) }
-    )
+    remoteStream
+      .inserts
+      .onErrorResumeNext(handleStreamError _)
+      .subscribe(sendToEsper _)
   }
 }

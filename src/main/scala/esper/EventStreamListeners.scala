@@ -85,7 +85,8 @@ abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) w
 
     event_builder
       .observer(exp)
-      .map(e => Option(e.get(field_name)).map(x => x.asInstanceOf[Double]))
+      .map(e => Option(e.get(field_name))
+      .map(_.asInstanceOf[Double]))
       .subscribe { avg => avg.map(x => {
           statsd.gauge(statsd_key_name, x)
           logger.info(s"Avg $field_name of last $intervalSecs seconds: $x")

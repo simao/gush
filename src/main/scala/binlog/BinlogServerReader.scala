@@ -13,8 +13,7 @@ class BinlogEventListener(observer: Observer[String])(implicit val config: GushC
     val header = event.getHeader.asInstanceOf[EventHeaderV4]
     if(header.getEventType.equals(EventType.QUERY)) {
       val data = event.getData.asInstanceOf[QueryEventData]
-      if (ignored_event(data.getSql))
-      {
+      if (ignored_event(data.getSql)) {
         logger.trace(s"Event ignored: ${data.getSql.slice(0, 30)}")
       } else {
         logger.debug(s"Sending binlog event to observer (${data.getSql.slice(0, 30)})")

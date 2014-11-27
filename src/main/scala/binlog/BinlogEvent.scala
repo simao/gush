@@ -5,15 +5,14 @@ import parser._
 import scala.util.{Failure, Success}
 
 object BinlogEvent {
-  def apply(raw_sql: String) = {
-    def parser = new CustomInsertParser
-
-    parser(raw_sql) match {
-      case Success(m) => { new BinlogEvent(raw_sql, m.tableName,  m.fields) }
-      case Failure(t) => throw new Exception(s"Error Parsing: ${raw_sql}: ", t)
+  // TODO: Should return an Either
+  def parseAll(raw_sql: String): List[BinlogEvent] = {
+      FoundationParser.parse(raw_sql) match {
+      case Success(m) => m.map({x => new BinlogEvent(raw_sql, x.tableName,  x.fields)})
+      case Failure(t) =>
+        throw new Exception(s"Error Parsing: $raw_sql: ", t)
     }
   }
 }
 
-class BinlogEvent(val raw_sql: String, val tableName: String,
-  val fields: Map[String, String]) { }
+case class BinlogEvent(raw_sql: String, tableName: String, fields: Map[String, String])

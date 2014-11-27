@@ -2,7 +2,7 @@ name := "gush"
 
 scalaVersion := "2.11.4"
 
-version := "0.1"
+version := "0.0.2"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
@@ -20,11 +20,12 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.0" % "test"
 
 libraryDependencies += "com.espertech" % "esper" % "4.6.0"
 
-libraryDependencies += "com.netflix.rxjava" % "rxjava-scala" % "0.19.2"
-
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.13"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 
 libraryDependencies += "com.jcraft" % "jsch" % "0.1.51"
 
+libraryDependencies += "com.foundationdb" % "fdb-sql-parser" % "1.0.17"
+
+libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"

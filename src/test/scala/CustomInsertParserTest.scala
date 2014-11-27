@@ -25,9 +25,6 @@ class CustomInsertParserTest extends FunSuite {
 
   test("Returns a failure when string could not be parsed") {
     val failure = (new CustomInsertParser)("invalid statement")
-
-    println(failure)
-
     assert(failure.isFailure)
   }
 
