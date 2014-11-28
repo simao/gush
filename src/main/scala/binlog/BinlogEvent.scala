@@ -5,10 +5,10 @@ import parser._
 import scala.util.{Failure, Success}
 
 object BinlogEvent {
-  // TODO: Should return an Either
+  // TODO: Should return a Try
   def parseAll(raw_sql: String): List[BinlogEvent] = {
       FoundationParser.parse(raw_sql) match {
-      case Success(m) => m.map({x => new BinlogEvent(raw_sql, x.tableName,  x.fields)})
+      case Success(m) => m.map({x => new BinlogEvent(raw_sql, x.table,  x.fields)})
       case Failure(t) =>
         throw new Exception(s"Error Parsing: $raw_sql: ", t)
     }

@@ -17,11 +17,15 @@ class BinlogEventStream(eventStream: BinlogSqlStream) {
       .filter(s => !s.contains("ON DUPLICATE KEY UPDATE"))
       .flatMapIterable(s => BinlogEvent.parseAll(s))
   }
+
+  def updates: Observable[String] = {
+    eventStream.events
+    .filter(s => s.startsWith("UPDATE"))
+  }
 }
 
 class BinlogToEsperSender(cepService: EPServiceProvider, config: GushConfig) extends StatsdSender with StrictLogging {
   def sendToEsper(event: BinlogEvent): Unit = {
-    logger.debug(s"Sending event for table ${event.tableName} to ESPER")
     val esperEvent = new BinlogEsperEvent(event.tableName, event.fields)
     cepService.getEPRuntime.sendEvent(esperEvent)
   }
@@ -38,9 +42,15 @@ class BinlogToEsperSender(cepService: EPServiceProvider, config: GushConfig) ext
   }
 
   def init = {
-    remoteStream
-      .inserts
-      .onErrorResumeNext(handleStreamError _)
-      .subscribe(sendToEsper _)
+    remoteStream.updates
+      .subscribe(logger.info(_))
+    //      .subscribeOn(IOScheduler())
+
+//    remoteStream
+//      .inserts
+//      .onErrorResumeNext(handleStreamError _)
+//      .subscribe(sendToEsper _)
+
+
   }
 }

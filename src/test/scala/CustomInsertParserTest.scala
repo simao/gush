@@ -9,7 +9,7 @@ class CustomInsertParserTest extends FunSuite {
     val parser = new CustomInsertParser
     val insert = parser(stm).get
 
-    assert(insert.tableName === "messages")
+    assert(insert.table === "messages")
     assert(insert.fields("approved") === "1")
     assert(insert.fields("created_at") === "2013-11-23 18:20:10")
     assert(insert.fields("read_at") === "NULL")

@@ -63,6 +63,18 @@ class FoundationParserTest extends FunSuite {
     assert(record.fields("col_name") === "\"value\"")
   }
 
+  test("parse an update") {
+    val stm = "UPDATE `reviews` SET `reviews`.`offer_is_online` = 0 WHERE " +
+      "`reviews`.`type` IN ('HostReview', 'GuestReview') AND " +
+      "`reviews`.`recipient_id` = 1528143 /*application*/"
+
+    val record = parseFirst(stm)
+
+    assert(record.fields("offer_is_online") === "0")
+    assert(record.fields("type") === "HostReview")
+    assert(record.fields("recipient_id") === "1528143")
+  }
+
   test("parses ON DUPLICATE KEY UPDATE") (pending)
 //  {
 //    val stm = "INSERT INTO wat (a,b,c) VALUES (1,2,3) ON DUPLICATE KEY UPDATE c=c+1;"

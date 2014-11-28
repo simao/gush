@@ -4,11 +4,113 @@ import com.foundationdb.sql.parser._
 
 import scala.util.{Failure, Success, Try}
 
+class SelectNodeVisitor extends Visitor {
+  var fields = Map[String, String]()
+  var currentFieldName: Option[String] = None
+
+  override def visit(node: Visitable): Visitable = {
+    node match {
+      case n: ConstantNode ⇒
+        fields = fields +
+          (currentFieldName.get →  s"${n.getValue.toString}")
+        node
+      case n: ResultColumn ⇒
+        currentFieldName = Some(n.getName)
+        node
+      case _ ⇒
+        node
+    }
+  }
+
+  override def stopTraversal(): Boolean = false
+
+  override def skipChildren(node: Visitable): Boolean = false
+
+  override def visitChildrenFirst(node: Visitable): Boolean = false
+
+  def asMap = this.fields
+}
+
+class FromBaseVisitor extends Visitor {
+  var fields = Map[String, String]()
+  var currentFieldName: Option[String] = None
+
+  override def visit(node: Visitable): Visitable = {
+    node match {
+      case n: ConstantNode ⇒
+        fields = fields + (currentFieldName.get → n.getValue.toString)
+
+      case n: ResultColumn ⇒
+        currentFieldName = Some(n.getColumnName)
+
+      case _ ⇒ ()
+    }
+
+    node
+  }
+
+  override def stopTraversal(): Boolean = false
+
+  override def skipChildren(node: Visitable): Boolean = false
+
+  override def visitChildrenFirst(node: Visitable): Boolean = false
+
+  def asMap = this.fields
+}
+
+class UpdateParserVisitor extends Visitor {
+  var selector = Map[String, String]()
+  var fields = Map[String, String]()
+
+  override def visit(node: Visitable): Visitable = {
+    node match {
+//      case n: FromBaseTable ⇒
+//        val v = new FromBaseVisitor
+//        node.accept(v)
+//
+//        fields = v.asMap
+//
+//        print("Fields => ")
+//        println(fields)
+
+      case n: SelectNode ⇒
+        val v = new SelectNodeVisitor
+        node.accept(v)
+
+        selector = selector ++ v.asMap
+
+        print("SELECTORS => ")
+        println(selector)
+
+      case n ⇒
+    }
+
+    println(">>>>>>>>>>>")
+    print(node.toString)
+    println(node.getClass.toString)
+    println("<<<<<<<<<<<")
+
+    node
+  }
+
+  override def stopTraversal(): Boolean = false
+
+  override def skipChildren(node: Visitable): Boolean = false
+
+  override def visitChildrenFirst(node: Visitable): Boolean = false
+}
+
 class FoundationParser {
   val parser = new SQLParser()
 
-  def toInsertStatement(statementNode: Try[StatementNode]): Try[List[InsertStatement]] = {
+  def toInsertStatement(statementNode: Try[StatementNode]): Try[List[SqlStatement]] = {
     statementNode.map({
+      case n: UpdateNode ⇒
+        val v = new UpdateParserVisitor
+        n.accept(v)
+        // v.asMaps.map(UpdateStatement(n.getTargetTableName.toString, _))
+        List(UpdateStatement("", Map()))
+
       case n: InsertNode =>
         val v = new ResultSetVisitor
         n.accept(v)
@@ -18,7 +120,7 @@ class FoundationParser {
 
   private def cleanedForParsing(s: String): String = s.replaceAll("""\\'""", "\"")
 
-  def parse(statement: String): Try[List[InsertStatement]] = {
+  def parse(statement: String): Try[List[SqlStatement]] = {
     val parsedStatement = cleanedForParsing(statement)
     val t = Try(parser.parseStatement(parsedStatement))
 
@@ -31,7 +133,7 @@ class FoundationParser {
 }
 
 object FoundationParser {
-  def parse(stm: String): Try[List[InsertStatement]] = (new FoundationParser).parse(stm)
+  def parse(stm: String): Try[List[SqlStatement]] = (new FoundationParser).parse(stm)
 }
 
 class ResultSetVisitor extends Visitor {

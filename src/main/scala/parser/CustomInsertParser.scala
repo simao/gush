@@ -3,8 +3,6 @@ package parser
 import scala.util.Try
 import scala.util.parsing.combinator._
 
-case class InsertStatement(tableName: String, fields: Map[String, String]) {}
-
 class CustomInsertParser extends JavaTokenParsers {
   def quotedStr = "'" ~> """[^']*""".r <~ "'"
 
