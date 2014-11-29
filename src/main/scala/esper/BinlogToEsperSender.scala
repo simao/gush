@@ -15,7 +15,7 @@ class BinlogEventStream(eventStream: BinlogSqlStream) {
     eventStream.events
       .filter(s => s.startsWith("INSERT INTO"))
       .filter(s => !s.contains("ON DUPLICATE KEY UPDATE"))
-      .flatMapIterable(s => BinlogEvent.parseAll(s))
+      .flatMapIterable(s => BinlogEvent.parseAll(s).get)
   }
 
   def updates: Observable[String] = {

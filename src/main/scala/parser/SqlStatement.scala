@@ -1,14 +1,22 @@
 package parser
 
-sealed trait SqlStatement {
+import parser.SqlStatement.FieldMap
+
+sealed abstract class SqlStatement {
   def table: String
-  def fields: Map[String, String]
+  def fields: FieldMap
 }
 
-case class InsertStatement(table: String, fields: Map[String, String])
+object SqlStatement {
+  type FieldMap = Map[String, String]
+}
+
+case class InsertStatement(table: String, fields: FieldMap)
   extends SqlStatement
 
-case class UpdateStatement(table: String, fields: Map[String, String])
-  extends SqlStatement
+case class UpdateStatement(table: String, updatedFields: FieldMap, target: FieldMap)
+  extends SqlStatement {
+  def fields = updatedFields
+}
 
 

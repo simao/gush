@@ -29,3 +29,4 @@ libraryDependencies += "com.jcraft" % "jsch" % "0.1.51"
 libraryDependencies += "com.foundationdb" % "fdb-sql-parser" % "1.0.17"
 
 libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"
+

@@ -2,16 +2,16 @@ package binlog
 
 import parser._
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Try}
 
 object BinlogEvent {
-  // TODO: Should return a Try
-  def parseAll(raw_sql: String): List[BinlogEvent] = {
-      FoundationParser.parse(raw_sql) match {
-      case Success(m) => m.map({x => new BinlogEvent(raw_sql, x.table,  x.fields)})
-      case Failure(t) =>
-        throw new Exception(s"Error Parsing: $raw_sql: ", t)
-    }
+  def parseAll(raw_sql: String): Try[List[BinlogEvent]] = {
+    FoundationParser
+      .parse(raw_sql)
+      .map(_.map(stm ⇒ new BinlogEvent(raw_sql, stm.table, stm.fields)))
+      .recoverWith({
+      case t: Throwable ⇒ Failure(new RuntimeException(s"Error Parsing: $raw_sql: ", t))
+    })
   }
 }
 
