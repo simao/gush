@@ -1,6 +1,6 @@
 import binlog.BinlogEvent
 import org.scalatest.FunSuite
- 
+
 class BinlogEventTest extends FunSuite {
  
   test("parses fields in insert statement") {

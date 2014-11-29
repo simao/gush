@@ -13,14 +13,15 @@ trait BinlogSqlStream {
 class BinlogEventStream(eventStream: BinlogSqlStream) {
   def inserts: Observable[BinlogEvent] = {
     eventStream.events
-      .filter(s => s.startsWith("INSERT INTO"))
-      .filter(s => !s.contains("ON DUPLICATE KEY UPDATE"))
-      .flatMapIterable(s => BinlogEvent.parseAll(s).get)
+      .filter(s ⇒ s.startsWith("INSERT INTO"))
+      .filter(s ⇒ !s.contains("ON DUPLICATE KEY UPDATE"))
+      .flatMapIterable(s ⇒ BinlogEvent.parseAll(s).get)
   }
 
-  def updates: Observable[String] = {
+  def updates: Observable[BinlogEvent] = {
     eventStream.events
-    .filter(s => s.startsWith("UPDATE"))
+      .filter(s ⇒ s.startsWith("UPDATE"))
+      .flatMapIterable(s ⇒ BinlogEvent.parseAll(s).get)
   }
 }
 
@@ -42,15 +43,9 @@ class BinlogToEsperSender(cepService: EPServiceProvider, config: GushConfig) ext
   }
 
   def init = {
-    remoteStream.updates
-      .subscribe(logger.info(_))
-    //      .subscribeOn(IOScheduler())
-
-//    remoteStream
-//      .inserts
-//      .onErrorResumeNext(handleStreamError _)
-//      .subscribe(sendToEsper _)
-
-
+    remoteStream
+      .inserts
+      .onErrorResumeNext(handleStreamError _)
+      .subscribe(sendToEsper _)
   }
 }
