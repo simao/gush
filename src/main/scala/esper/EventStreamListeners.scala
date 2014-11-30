@@ -62,7 +62,7 @@ abstract class WindowedCount(interval: Duration) extends WindowedEvent(interval)
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT count(*) as count FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 10 SECONDS"
+    val exp = s"SELECT count(*) as count FROM BinlogInsertEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 10 SECONDS"
 
     event_builder
       .observer(exp)
@@ -81,7 +81,7 @@ abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) w
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT avg(asFloat('$field_name')) as $field_name FROM BinlogEsperEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 10 SECONDS"
+    val exp = s"SELECT avg(asFloat('$field_name')) as $field_name FROM BinlogInsertEvent.win:time($intervalSecs second) where tableName='$table_name' OUTPUT LAST EVERY 10 SECONDS"
 
     event_builder
       .observer(exp)
@@ -101,7 +101,7 @@ abstract class EventCount extends StatsdSender with StrictLogging {
   def statsd_key_name: String
 
   def init(event_builder: EventObserverBuilder) = {
-    val exp = s"SELECT * FROM BinlogEsperEvent where tableName='$table_name'"
+    val exp = s"SELECT * FROM BinlogInsertEvent where tableName='$table_name'"
 
     event_builder
       .observer(exp)

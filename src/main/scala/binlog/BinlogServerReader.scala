@@ -4,7 +4,6 @@ import com.github.shyiko.mysql.binlog._
 import com.github.shyiko.mysql.binlog.event._
 import com.jcraft.jsch.JSch
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
-import esper._
 import rx.lang.scala.{Observable, Observer, Subscription}
 import util.GushConfig
 
@@ -48,7 +47,7 @@ class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.Life
   }
 }
 
-class BinlogRemoteReader(config: GushConfig) extends BinlogSqlStream with LazyLogging {
+class BinlogRemoteReader(config: GushConfig) extends LazyLogging {
 
   def observableFrom(client: BinaryLogClient) = {
     Observable.create((o: Observer[String]) => {
@@ -107,7 +106,7 @@ class BinlogRemoteReader(config: GushConfig) extends BinlogSqlStream with LazyLo
       .getOrElse(setupClient())
   }
 
-  override def events = {
+  def events = {
     setupClient() match {
       case Some(client) =>
         observableFrom(client)

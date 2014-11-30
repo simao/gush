@@ -2,12 +2,11 @@ package esper
 
 import com.espertech.esper.client.{Configuration, EPServiceProvider, EPServiceProviderManager}
 
-import binlog._
-
 object Esper {
   def setup: EPServiceProvider = {
     val config = new Configuration()
-    config.addEventType("BinlogEsperEvent", classOf[BinlogEsperEvent].getName)
+    config.addEventType("BinlogInsertEvent", classOf[BinlogInsertEvent].getName)
+    config.addEventType("BinlogUpdateEvent", classOf[BinlogUpdateEvent].getName)
     EPServiceProviderManager.getDefaultProvider(config)
   }
 }
