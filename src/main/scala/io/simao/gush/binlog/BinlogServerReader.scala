@@ -1,11 +1,11 @@
-package binlog
+package io.simao.gush.binlog
 
+import io.simao.gush.util.GushConfig
 import com.github.shyiko.mysql.binlog._
 import com.github.shyiko.mysql.binlog.event._
 import com.jcraft.jsch.JSch
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import rx.lang.scala.{Observable, Observer, Subscription}
-import util.GushConfig
 
 class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with StrictLogging {
   def onEvent(event: Event) {
@@ -16,7 +16,7 @@ class BinlogEventListener(observer: Observer[String])(implicit val config: GushC
       if (ignored_event(data.getSql)) {
         logger.trace(s"Event ignored: ${data.getSql.slice(0, 30)}")
       } else {
-        logger.debug(s"Sending binlog event to observer (${data.getSql.slice(0, 30)})")
+        logger.debug(s"Sending io.simao.gush.binlog event to observer (${data.getSql.slice(0, 30)})")
         observer.onNext(data.getSql)
       }
     }

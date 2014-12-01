@@ -1,4 +1,4 @@
-package parser
+package io.simao.gush.parser
 
 import scala.util.Try
 import scala.util.parsing.combinator._

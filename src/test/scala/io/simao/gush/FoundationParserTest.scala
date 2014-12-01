@@ -1,5 +1,7 @@
+package io.simao.gush
+
+import io.simao.gush.parser.{FoundationParser, UpdateStatement}
 import org.scalatest.FunSuite
-import parser.{UpdateStatement, FoundationParser}
 
 import scala.util.Try
 

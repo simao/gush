@@ -4,7 +4,7 @@ scalaVersion := "2.11.4"
 
 version := "0.0.2"
 
-scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", " -language:implicitConversions")
 
 resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
 
@@ -16,7 +16,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.2"
 
 libraryDependencies += "com.github.shyiko" % "mysql-binlog-connector-java" % "0.1.0"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.0" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
 libraryDependencies += "com.espertech" % "esper" % "4.6.0"
 
@@ -30,3 +30,4 @@ libraryDependencies += "com.foundationdb" % "fdb-sql-parser" % "1.0.17"
 
 libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"
 
+libraryDependencies += "org.mockito" % "mockito-all" % "1.10.8"

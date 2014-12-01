@@ -1,5 +1,7 @@
+package io.simao.gush
+
+import io.simao.gush.parser.CustomInsertParser
 import org.scalatest.FunSuite
-import parser.CustomInsertParser
 
 class CustomInsertParserTest extends FunSuite {
  

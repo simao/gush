@@ -1,12 +1,13 @@
-package esper
+package io.simao.gush.esper
 
-import binlog._
-import com.espertech.esper.client.EPServiceProvider
+import com.espertech.esper.client.EPRuntime
 import com.typesafe.scalalogging.StrictLogging
+import io.simao.gush.binlog._
+import io.simao.gush.util.{GushConfig, StatsdSender}
 import rx.lang.scala.Observable
-import util.{GushConfig, StatsdSender}
 
-// TODO: .get should be handled differently, maybe using `onError`?
+// TODO: onError should not resume, just bubble up and something should cause a reconnect
+// TODO: .get should be handled differently, it's easy because sendToEsper can expect a try and raise
 // TODO: Needs tests
 // TODO: Ignore skipping should be done here
 class BinlogEventStream(sqlStream: Observable[String]) {
@@ -22,14 +23,11 @@ class BinlogEventStream(sqlStream: Observable[String]) {
       .filter(_.startsWith("UPDATE"))
       .flatMapIterable(BinlogEvent.parseAll(_).get)
   }
-
-  def all: Observable[String] = sqlStream
 }
 
-class BinlogToEsperSender(cepService: EPServiceProvider, config: GushConfig) extends StatsdSender with StrictLogging {
+class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends StatsdSender with StrictLogging {
   def sendToEsper(event: BinlogEvent): Unit = {
-    println("sendiing to esper: " + event.toString)
-    cepService.getEPRuntime.sendEvent(event)
+    epRuntime.sendEvent(event)
   }
 
   def remoteStream: BinlogEventStream = {

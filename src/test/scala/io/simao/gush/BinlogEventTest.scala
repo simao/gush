@@ -1,8 +1,7 @@
-import binlog.BinlogEvent
-import esper.BinlogInsertEvent
-import org.scalatest.FunSuite
+package io.simao.gush
 
-import io.simao.util.KestrelObj._
+import io.simao.gush.binlog.{BinlogEvent, BinlogInsertEvent}
+import org.scalatest.FunSuite
 
 class BinlogEventTest extends FunSuite {
  
@@ -12,9 +11,5 @@ class BinlogEventTest extends FunSuite {
     val event = BinlogEvent.parseAll(stm).get.head.asInstanceOf[BinlogInsertEvent]
 
     assert(event.fields.keys.size === 22)
-  }
-
-  test("kestrel") {
-    assert(1.tap { v ⇒ println(v) } === 1)
   }
 }

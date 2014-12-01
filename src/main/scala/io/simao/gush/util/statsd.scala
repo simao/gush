@@ -1,4 +1,4 @@
-package util
+package io.simao.gush.util
 
 import java.net.{DatagramPacket, InetAddress, DatagramSocket}
 

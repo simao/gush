@@ -5,8 +5,6 @@ class KestrelObj[T](value: T) {
     f(value)
     value
   }
-
-
 }
 
 object KestrelObj {

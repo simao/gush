@@ -1,7 +1,7 @@
-package parser
+package io.simao.gush.parser
 
 import com.foundationdb.sql.parser._
-import parser.SqlStatement.FieldMap
+import io.simao.gush.parser.SqlStatement.FieldMap
 
 class UpdatedFieldsVisitor extends Visitor {
   var fields = Map[String, String]()

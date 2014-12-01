@@ -1,4 +1,4 @@
-package parser
+package io.simao.gush.parser
 
 import com.foundationdb.sql.parser._
 
@@ -24,7 +24,7 @@ class FoundationParser {
     })
   }
 
-  // Getting weird escaping from mysql-binlog
+  // Getting weird escaping from mysql-io.simao.gush.binlog
   private def cleanedForParsing(s: String): String = s.replaceAll("""\\'""", "\"")
 
   def parse[T <: SqlStatement](statement: String): Try[List[T]] = {

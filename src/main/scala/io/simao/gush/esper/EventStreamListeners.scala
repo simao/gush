@@ -1,9 +1,9 @@
-package esper
+package io.simao.gush.esper
 
 import com.espertech.esper.client.{EPServiceProvider, EventBean, UpdateListener}
 import com.typesafe.scalalogging.StrictLogging
 import rx.lang.scala.{Observable, Observer, Subscription}
-import util._
+import io.simao.gush.util._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -12,7 +12,7 @@ class EsperEventListenersManager extends StrictLogging {
   def init = {
     val epService = Esper.setup
 
-    logger.info("Initializing esper event listener")
+    logger.info("Initializing io.simao.gush.esper event listener")
 
     val builder = new EventObserverBuilder(epService)
 

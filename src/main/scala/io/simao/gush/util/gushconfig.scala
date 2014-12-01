@@ -1,4 +1,4 @@
-package util
+package io.simao.gush.util
 
 import java.io.{FileInputStream, File}
 import org.yaml.snakeyaml.Yaml

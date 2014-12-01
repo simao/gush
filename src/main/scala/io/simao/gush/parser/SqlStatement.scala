@@ -1,6 +1,6 @@
-package parser
+package io.simao.gush.parser
 
-import parser.SqlStatement.FieldMap
+import io.simao.gush.parser.SqlStatement.FieldMap
 
 sealed abstract class SqlStatement {
   def table: String

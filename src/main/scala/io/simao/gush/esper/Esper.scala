@@ -1,6 +1,7 @@
-package esper
+package io.simao.gush.esper
 
 import com.espertech.esper.client.{Configuration, EPServiceProvider, EPServiceProviderManager}
+import io.simao.gush.binlog.{BinlogUpdateEvent, BinlogInsertEvent}
 
 object Esper {
   def setup: EPServiceProvider = {

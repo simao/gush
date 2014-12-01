@@ -1,4 +1,4 @@
-package parser
+package io.simao.gush.parser
 
 import com.foundationdb.sql.parser.{ColumnReference, ConstantNode, Visitable, Visitor}
 
