@@ -12,4 +12,10 @@ class BinlogEventTest extends FunSuite {
 
     assert(event.fields.keys.size === 22)
   }
+
+  test("handles parsing failures") (pending)
+
+  test("maps Inserts to BinlogInsert") (pending)
+
+  test("maps Updates to BinlogUpdate") (pending)
 }

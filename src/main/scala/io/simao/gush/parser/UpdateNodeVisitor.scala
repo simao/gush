@@ -9,10 +9,13 @@ class UpdatedFieldsVisitor extends Visitor {
 
   override def visit(node: Visitable): Visitable = {
     node match {
+      case n: BinaryArithmeticOperatorNode ⇒
+        currentFieldValue = Option(n.toString)
       case n: ConstantNode ⇒
         currentFieldValue = Option(n.getValue).map(_.toString).orElse(Some("NULL"))
       case n: ColumnReference ⇒
-        fields = fields + (n.getColumnName → currentFieldValue.get)
+        val fieldVal = currentFieldValue.getOrElse("<Gush.UNKNOWN>")
+        fields = fields + (n.getColumnName → fieldVal)
       case _ ⇒ ()
     }
 
@@ -94,7 +97,7 @@ class UpdateNodeVisitor extends Visitor {
 
   override def visitChildrenFirst(node: Visitable): Boolean = false
 
-  def parsedUpdate: UpdateStatement = UpdateStatement(tableName.getOrElse(""), updatedFields, whereFields)
+  def parsedUpdate: UpdateStatement = UpdateStatement(tableName.getOrElse("<Gush.UNKNOWN_TABLE>"), updatedFields, whereFields)
 }
 
 

@@ -1,9 +1,11 @@
 package io.simao.gush
 
 import io.simao.gush.parser.{FoundationParser, UpdateStatement}
-import org.scalatest.FunSuite
+import org.scalatest.{Tag, FunSuite}
 
 import scala.util.Try
+
+object IgnoreTest extends Tag("IgnoreTest")
 
 class FoundationParserTest extends FunSuite {
 
@@ -94,5 +96,16 @@ class FoundationParserTest extends FunSuite {
     assert(record.fields("offer_is_online") === "0")
     assert(record.target("type") === "HostReview, GuestReview")
     assert(record.target("recipient_id") === "1528143")
+  }
+
+  test("parse functions in UPDATE", IgnoreTest) {
+    val stm = "UPDATE `offers` SET `guest_reviews_count` = COALESCE(`guest_reviews_count`, 0) + 1 WHERE `offers`.`id` = 3533930"
+
+    val parsedStatement: Try[List[UpdateStatement]] = (new FoundationParser).parse(stm)
+
+    val record = parsedStatement.get.head
+
+    assert(record.table === "offers")
+    assert(record.updatedFields("guest_reviews_count") === "COALESCE(`guest_reviews_count`, 0) + 1")
   }
 }

@@ -10,28 +10,20 @@ import rx.lang.scala.Observable
 // TODO: .get should be handled differently, it's easy because sendToEsper can expect a try and raise
 // TODO: Needs tests
 // TODO: Ignore skipping should be done here
-class BinlogEventStream(sqlStream: Observable[String]) {
-  def inserts: Observable[BinlogEvent] = {
-    sqlStream
-      .filter(_.startsWith("INSERT INTO"))
-      .filter(!_.contains("ON DUPLICATE KEY UPDATE"))
-      .flatMapIterable(BinlogEvent.parseAll(_).get)
-  }
-
-  def updates: Observable[BinlogEvent] = {
-    sqlStream
-      .filter(_.startsWith("UPDATE"))
-      .flatMapIterable(BinlogEvent.parseAll(_).get)
-  }
-}
-
 class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends StatsdSender with StrictLogging {
   def sendToEsper(event: BinlogEvent): Unit = {
     epRuntime.sendEvent(event)
   }
 
-  def remoteStream: BinlogEventStream = {
-    new BinlogEventStream(new BinlogRemoteReader(config).events)
+  def events(sqlStream: Observable[String]): Observable[BinlogEvent] = {
+    sqlStream
+      .filter(s ⇒ s.startsWith("INSERT INTO") || s.startsWith("UPDATE"))
+      .filter(!_.contains("ON DUPLICATE KEY UPDATE"))
+      .flatMapIterable(BinlogEvent.parseAll(_).get)
+  }
+
+  def remoteStream: Observable[String] = {
+    new BinlogRemoteReader(config).events
   }
 
   def handleStreamError[U](ex: Throwable): Observable[U] = {
@@ -41,8 +33,8 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
     // TODO: Should reconnect ...
   }
 
-  def init = {
-    val stream = remoteStream.inserts.publish
+  def startEventSending = {
+    val stream = events(remoteStream).publish
 
     stream
       .onErrorResumeNext(handleStreamError _)

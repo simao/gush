@@ -13,7 +13,7 @@ class GushConfig(val config: Map[String, Object]) {
 
   def mysqlPassword = getProperty("mysql_password")
 
-  def statsDHost = getProperty("statsd_host")
+  def statsDHost: String = getProperty("statsd_host").getOrElse("localhost")
 
   def sshTunnelAddress = getProperty("ssh_tunnel_host")
 
@@ -27,11 +27,13 @@ class GushConfig(val config: Map[String, Object]) {
     config("ignored_statements_prefixes").asInstanceOf[java.util.List[String]].toList
   }
 
-  def getProperty(key: String): Option[String] = Option(config(key)).map(_.toString)
+  def getProperty(key: String): Option[String] = config.lift(key).map(_.toString)
 }
 
 object GushConfig {
-  implicit val default: GushConfig = GushConfig("gush.config.yml")
+  implicit val default: GushConfig = new GushConfig(
+  Map()
+  )
 
   def apply(path: String) = {
     val input = new FileInputStream(new File(path))

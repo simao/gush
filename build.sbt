@@ -6,6 +6,8 @@ version := "0.0.2"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", " -language:implicitConversions")
 
+testOptions in Test += Tests.Argument("-l", "IgnoreTest")
+
 resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -31,3 +33,5 @@ libraryDependencies += "com.foundationdb" % "fdb-sql-parser" % "1.0.17"
 libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.10.8"
+
+

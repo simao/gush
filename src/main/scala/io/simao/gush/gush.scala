@@ -18,7 +18,7 @@ class Gush(implicit config: GushConfig) extends StatsdSender with StrictLogging 
 
   @tailrec
   final def startBinlogLoop(epRuntime: EPRuntime): Unit = {
-    Try(new BinlogToEsperSender(epRuntime, config).init) recover {
+    Try(new BinlogToEsperSender(epRuntime, config).startEventSending) recover {
       case ex =>
         statsd.increment("gush.exceptions.loop")
         logger.error("Error occurred: ", ex)
