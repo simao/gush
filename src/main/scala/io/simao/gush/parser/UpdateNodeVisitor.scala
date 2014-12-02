@@ -5,21 +5,18 @@ import io.simao.gush.parser.SqlStatement.FieldMap
 
 class UpdatedFieldsVisitor extends Visitor {
   var fields = Map[String, String]()
-  var currentFieldValue: Option[String] = None
 
-  override def visit(node: Visitable): Visitable = {
-    node match {
-      case n: BinaryArithmeticOperatorNode ⇒
-        currentFieldValue = Option(n.toString)
-      case n: ConstantNode ⇒
-        currentFieldValue = Option(n.getValue).map(_.toString).orElse(Some("NULL"))
-      case n: ColumnReference ⇒
-        val fieldVal = currentFieldValue.getOrElse("<Gush.UNKNOWN>")
-        fields = fields + (n.getColumnName → fieldVal)
-      case _ ⇒ ()
-    }
+  override def visit(node: Visitable): Visitable = node match {
+    case n: ResultColumn ⇒
+      val expVisitor = new ExpressionVisitor
+      n.getExpression.accept(expVisitor)
+      val expression = expVisitor.asString
+      val ref = n.getReference.getColumnName
+      fields = fields + (ref → expression)
+      node
 
-    node
+      case _ ⇒
+        node
   }
 
   override def stopTraversal(): Boolean = false
@@ -65,6 +62,53 @@ class WhereFieldsVisitor extends Visitor {
   }
 }
 
+class ExpressionVisitor extends Visitor {
+  var expressionRepr = new StringBuilder
+
+//  type FunctionNode = { def getFunctionName: String; def getArgumentsList: ValueNodeList }
+
+  override def visit(node: Visitable): Visitable = node match {
+    case n: CoalesceFunctionNode ⇒
+      expressionRepr ++= n.getFunctionName + "("
+
+      for(i ← 0 until n.getArgumentsList.size()) {
+        n.getArgumentsList.get(i).accept(this)
+        if(i != n.getArgumentsList.size()-1)
+          expressionRepr ++= ","
+      }
+
+      expressionRepr ++= ")"
+      node
+
+    case n: BinaryOperatorNode ⇒
+      n.getLeftOperand.accept(this)
+      expressionRepr ++= n.getOperator
+      n.getRightOperand.accept(this)
+      node
+
+    case n: ConstantNode ⇒
+      expressionRepr ++= Option(n.getValue).map(_.toString).getOrElse("NULL")
+      node
+
+    case n: ColumnReference ⇒
+      expressionRepr ++= n.getColumnName
+      node
+
+    case n: ValueNodeList ⇒
+      node
+  }
+
+  def asString = expressionRepr.toString()
+
+  override def stopTraversal(): Boolean = false
+
+  override def skipChildren(node: Visitable): Boolean = node match {
+    case _: CoalesceFunctionNode | _: BinaryOperatorNode ⇒ true
+    case _ ⇒ false
+  }
+
+  override def visitChildrenFirst(node: Visitable): Boolean = false
+}
 
 class UpdateNodeVisitor extends Visitor {
   var whereFields: FieldMap = Map[String, String]()

@@ -10,6 +10,8 @@ class FoundationParser {
   def toSqlStatement(statementNode: Try[StatementNode]): Try[List[SqlStatement]] = {
     statementNode.flatMap({
       case n: UpdateNode ⇒
+        n.treePrint()
+
         val v = new UpdateNodeVisitor
         n.accept(v)
         Success(List(v.parsedUpdate))
@@ -24,6 +26,7 @@ class FoundationParser {
     })
   }
 
+  // TODO: Move to binlog listener?
   // Getting weird escaping from mysql-io.simao.gush.binlog
   private def cleanedForParsing(s: String): String = s.replaceAll("""\\'""", "\"")
 
