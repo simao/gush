@@ -103,7 +103,7 @@ class BinlogRemoteReader(config: GushConfig) extends LazyLogging {
   def setupClient(): Option[BinaryLogClient] = {
     config.sshTunnelAddress
       .map(_ => setupTunnelledClient())
-      .getOrElse(setupClient())
+      .getOrElse(setupSimpleClient())
   }
 
   def events = {

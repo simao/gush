@@ -2,7 +2,6 @@ package io.simao.gush.parser
 
 import com.foundationdb.sql.parser.{ColumnReference, ConstantNode, Visitable, Visitor}
 
-// TODO: THere is a better way to parse this!
 class InsertNodeVisitor extends Visitor {
   var currentValues = List[String]()
   var cols = List[String]()

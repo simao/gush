@@ -10,8 +10,6 @@ class FoundationParser {
   def toSqlStatement(statementNode: Try[StatementNode]): Try[List[SqlStatement]] = {
     statementNode.flatMap({
       case n: UpdateNode ⇒
-        n.treePrint()
-
         val v = new UpdateNodeVisitor
         n.accept(v)
         Success(List(v.parsedUpdate))

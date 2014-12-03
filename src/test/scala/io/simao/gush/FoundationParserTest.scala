@@ -98,7 +98,7 @@ class FoundationParserTest extends FunSuite {
     assert(record.target("recipient_id") === "1528143")
   }
 
-  test("parse COALESCE in UPDATE", IgnoreTest) {
+  test("parse COALESCE in UPDATE") {
     val stm = "UPDATE `offers` SET `guest_reviews_count` = COALESCE(`guest_reviews_count`, 0) + 1 WHERE `offers`.`id` = 3533930"
 
     val parsedStatement: Try[List[UpdateStatement]] = (new FoundationParser).parse(stm)
@@ -107,16 +107,5 @@ class FoundationParserTest extends FunSuite {
 
     assert(record.table === "offers")
     assert(record.updatedFields("guest_reviews_count") === "COALESCE(guest_reviews_count,0)+1")
-  }
-
-  test("parse functions in UPDATE", IgnoreTest) {
-    val stm = "UPDATE `offers` SET `col1` = NF(`col1`, 0) + 1 WHERE col2 = 2"
-    val parsedStatement: Try[List[UpdateStatement]] = (new FoundationParser).parse(stm)
-    val record = parsedStatement.get.head
-
-    println(record.updatedFields("col1"))
-
-    assert(record.table === "offers")
-    assert(record.updatedFields("col1") === "COALESCE(col1,0)+1")
   }
 }

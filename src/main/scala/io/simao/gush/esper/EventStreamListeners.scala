@@ -2,6 +2,7 @@ package io.simao.gush.esper
 
 import com.espertech.esper.client.{EPServiceProvider, EventBean, UpdateListener}
 import com.typesafe.scalalogging.StrictLogging
+import io.simao.gush.binlog.BinlogUpdateEvent
 import rx.lang.scala.{Observable, Observer, Subscription}
 import io.simao.gush.util._
 
@@ -23,6 +24,7 @@ class EsperEventListenersManager extends StrictLogging {
     (new NewUsersCount).init(builder)
     (new ReviewsAvg).init(builder)
     (new ReviewsCount).init(builder)
+    (new BookingUpdateCount).init(builder)
     epService
   }
 }
@@ -96,7 +98,7 @@ abstract class WindowedAvg(interval: Duration) extends WindowedEvent(interval) w
 
 }
 
-abstract class EventCount extends StatsdSender with StrictLogging {
+abstract class InsertEvent extends StatsdSender with StrictLogging {
   def table_name: String
   def statsd_key_name: String
 
@@ -110,7 +112,27 @@ abstract class EventCount extends StatsdSender with StrictLogging {
   }
 }
 
-class NewBookingCount extends EventCount {
+abstract class UpdateEvent extends StatsdSender with StrictLogging {
+  val table_name: String
+  def init(event_builder: EventObserverBuilder) = {
+    val exp = s"SELECT * FROM BinlogUpdateEvent where tableName='$table_name'"
+    
+    event_builder
+      .observer(exp)
+      .map(_.getUnderlying.asInstanceOf[BinlogUpdateEvent])
+      .subscribe {
+      e ⇒ {
+        logger.info(s"Update to $table_name received: booking_id ${e.whereFields("id")}")
+      }
+    }
+  }
+}
+
+class BookingUpdateCount extends UpdateEvent {
+  override val table_name = "bookings"
+}
+
+class NewBookingCount extends InsertEvent {
   def table_name = "bookings"
   def statsd_key_name = "gush.bookings.total"
 }

@@ -65,8 +65,6 @@ class WhereFieldsVisitor extends Visitor {
 class ExpressionVisitor extends Visitor {
   var expressionRepr = new StringBuilder
 
-//  type FunctionNode = { def getFunctionName: String; def getArgumentsList: ValueNodeList }
-
   override def visit(node: Visitable): Visitable = node match {
     case n: CoalesceFunctionNode ⇒
       expressionRepr ++= n.getFunctionName + "("

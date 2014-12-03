@@ -28,8 +28,6 @@ class Gush(implicit config: GushConfig) extends StatsdSender with StrictLogging 
   }
 }
 
-object GushApp extends StatsdSender {
-  def main(args: Array[String]) {
-    (new Gush).start()
-  }
+object GushApp extends App with StatsdSender {
+  (new Gush).start()
 }

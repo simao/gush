@@ -31,9 +31,20 @@ class GushConfig(val config: Map[String, Object]) {
 }
 
 object GushConfig {
-  implicit val default: GushConfig = new GushConfig(
-  Map()
-  )
+  implicit val default: GushConfig = {
+    defaultConfigFile
+      .map(_.getAbsolutePath)
+      .map(GushConfig(_))
+      .getOrElse(new GushConfig(Map()))
+  }
+
+  def defaultConfigFile: Option[File] = {
+    val f = new File("gush.config.yml")
+    if(f.exists() && f.isFile)
+      Some(f)
+    else
+      None
+  }
 
   def apply(path: String) = {
     val input = new FileInputStream(new File(path))
