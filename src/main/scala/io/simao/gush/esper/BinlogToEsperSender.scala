@@ -26,20 +26,17 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
     new BinlogRemoteReader(config).events
   }
 
-  def handleStreamError[U](ex: Throwable): Observable[U] = {
+  def handleStreamError(ex: Throwable): Unit = {
     logger.error("Error: ", ex)
     statsd.increment("gush.exceptions.onError")
-    Observable.empty
-    // TODO: Should reconnect ...
   }
 
   def startEventSending = {
-    val stream = events(remoteStream).publish
-
-    stream
-      .onErrorResumeNext(handleStreamError _)
+    val stream = events(remoteStream)
+      .doOnError(handleStreamError _)
+      .retry(3)
       .subscribe(sendToEsper _)
 
-    stream.connect
+    stream
   }
 }

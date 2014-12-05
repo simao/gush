@@ -16,7 +16,7 @@ class BinlogEventListener(observer: Observer[String])(implicit val config: GushC
       if (ignored_event(data.getSql)) {
         logger.trace(s"Event ignored: ${data.getSql.slice(0, 30)}")
       } else {
-        logger.debug(s"Sending io.simao.gush.binlog event to observer (${data.getSql.slice(0, 30)})")
+        logger.debug(s"Sending binlog event to observer (${data.getSql.slice(0, 30)})")
         observer.onNext(data.getSql)
       }
     }

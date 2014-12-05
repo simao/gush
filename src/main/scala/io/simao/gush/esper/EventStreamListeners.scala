@@ -13,7 +13,7 @@ class EsperEventListenersManager extends StrictLogging {
   def init = {
     val epService = Esper.setup
 
-    logger.info("Initializing io.simao.gush.esper event listener")
+    logger.info("Initializing esper event listener")
 
     val builder = new EventObserverBuilder(epService)
 
