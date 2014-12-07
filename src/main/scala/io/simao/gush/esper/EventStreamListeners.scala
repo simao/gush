@@ -25,6 +25,7 @@ class EsperEventListenersManager extends StrictLogging {
     (new ReviewsAvg).init(builder)
     (new ReviewsCount).init(builder)
     (new BookingUpdateCount).init(builder)
+
     epService
   }
 }

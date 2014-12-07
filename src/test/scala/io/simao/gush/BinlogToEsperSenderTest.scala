@@ -48,8 +48,9 @@ class BinlogToEsperSenderTest extends FunSuite with OneInstancePerTest with Mock
   test("recovers after an error") {
     val subject = new BinlogToEsperSender(epRuntime, config) {
       var called = false
+      override def handleStreamError(ex: Throwable): Unit = {}
+
       override def remoteStream = Observable(o ⇒ {
-        // TODO: How to do this without state?
         if(!called) {
           called = true
           o.onError(new Exception("Fails"))
@@ -58,6 +59,7 @@ class BinlogToEsperSenderTest extends FunSuite with OneInstancePerTest with Mock
         o.onCompleted()
       })
     }
+
     val insertEvent = BinlogInsertEvent("table0", Map("col1" → "1"))
 
     subject.startEventSending
