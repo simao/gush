@@ -5,14 +5,15 @@ import io.simao.gush.parser._
 import scala.beans.BeanProperty
 import scala.util.{Failure, Try}
 
-// TODO: Failure exception should be a gush exception
+class BinlogEventParseError(val msg: String, val t: Throwable) extends Exception(msg, t)
+
 object BinlogEvent {
   def parseAll(raw_sql: String): Try[List[BinlogEvent]] = {
     FoundationParser
       .parse(raw_sql)
       .map(_.map(parsedStatementToBinlogEvent))
       .recoverWith({
-      case t: Throwable ⇒ Failure(new Exception(s"Error Parsing: $raw_sql: ", t))
+      case t: Throwable ⇒ Failure(new BinlogEventParseError(s"Error Parsing: $raw_sql: ", t))
     })
   }
 

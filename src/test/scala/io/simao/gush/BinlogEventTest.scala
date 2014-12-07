@@ -1,6 +1,6 @@
 package io.simao.gush
 
-import io.simao.gush.binlog.{BinlogUpdateEvent, BinlogEvent, BinlogInsertEvent}
+import io.simao.gush.binlog.{BinlogEventParseError, BinlogUpdateEvent, BinlogEvent, BinlogInsertEvent}
 import org.scalatest.FunSuite
 
 class BinlogEventTest extends FunSuite {
@@ -15,7 +15,9 @@ class BinlogEventTest extends FunSuite {
 
   test("handles parsing failures") {
     val stm = "PARSE FAIL"
-    assert(BinlogEvent.parseAll(stm).isFailure)
+    val e = BinlogEvent.parseAll(stm)
+    assert(e.isFailure)
+    assert(e.failed.get.getClass === classOf[BinlogEventParseError])
   }
 
   test("maps Inserts to BinlogInsert") {
