@@ -1,6 +1,6 @@
 package io.simao.gush
 
-import io.simao.gush.binlog.{BinlogEvent, BinlogInsertEvent}
+import io.simao.gush.binlog.{BinlogUpdateEvent, BinlogEvent, BinlogInsertEvent}
 import org.scalatest.FunSuite
 
 class BinlogEventTest extends FunSuite {
@@ -13,9 +13,18 @@ class BinlogEventTest extends FunSuite {
     assert(event.fields.keys.size === 22)
   }
 
-  test("handles parsing failures") (pending)
+  test("handles parsing failures") {
+    val stm = "PARSE FAIL"
+    assert(BinlogEvent.parseAll(stm).isFailure)
+  }
 
-  test("maps Inserts to BinlogInsert") (pending)
+  test("maps Inserts to BinlogInsert") {
+    val stm = "INSERT INTO `messages` (`approved`, `autoapproved`, `body`, `booking_id`, `checkin_date`, `checkout_date`, `code`, `created_at`, `email_sent`, `first_reply_at`, `guests`, `offer_country_code_iso`, `offer_id`, `read_at`, `recipient_deleted_at`, `recipient_id`, `replies_count`, `reply_to_message_id`, `sender_deleted_at`, `sender_id`, `subject`, `updated_at`) VALUES (1, 0, 'Hallo Herr Buissant\r\nich würde gerne wissen ob wir bei ihnen auch unser auto abstellen können,fahrräder leihen und wie es mit bettwäsche aussieht und was sie noch für fragen haben,\r\nliebe grüße christiane gottschalk', 5299810, '2013-12-20', '2013-12-27', '88DSCQRJ', '2013-11-23 18:20:10', 0, NULL, 3, NULL, NULL, NULL, NULL, 4754165, 0, NULL, NULL, 4995086, 'Buchungsanfrage', '2013-11-23 18:20:10')"
+    assert(BinlogEvent.parseAll(stm).get.head.getClass === classOf[BinlogInsertEvent])
+  }
 
-  test("maps Updates to BinlogUpdate") (pending)
+  test("maps Updates to BinlogUpdate") {
+    val stm = "UPDATE `messages` set col0 = 1 where col1 = 2"
+    assert(BinlogEvent.parseAll(stm).get.head.getClass === classOf[BinlogUpdateEvent])
+  }
 }
