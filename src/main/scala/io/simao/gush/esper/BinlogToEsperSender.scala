@@ -7,9 +7,8 @@ import io.simao.gush.util.{GushConfig, StatsdSender}
 import rx.lang.scala.Observable
 
 class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends StatsdSender with StrictLogging {
-  def sendToEsper(event: BinlogEvent): Unit = {
-    epRuntime.sendEvent(event)
-  }
+
+  def sendToEsper(event: BinlogEvent): Unit = epRuntime.sendEvent(event)
 
   def events(sqlStream: Observable[String]): Observable[BinlogEvent] = {
     sqlStream
@@ -19,10 +18,11 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
   }
 
   def remoteStream: Observable[String] = {
-    new BinlogRemoteReader(config).events
+    BinlogRemoteReader.events(config)
   }
 
-  def handleStreamError(ex: Throwable): Unit = {
+  def handleStreamError(ex: Throwable): Unit =
+  {
     logger.error("Error: ", ex)
     statsd.increment("gush.exceptions.onError")
   }

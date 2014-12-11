@@ -24,7 +24,6 @@ class FoundationParser {
     })
   }
 
-  // TODO: Move to binlog listener?
   // Getting weird escaping from mysql-io.simao.gush.binlog
   private def cleanedForParsing(s: String): String = s.replaceAll("""\\'""", "\"")
 
