@@ -7,7 +7,7 @@ import com.jcraft.jsch.JSch
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import rx.lang.scala.{Observable, Observer, Subscription}
 
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with StrictLogging {
   def onEvent(event: Event) {
@@ -50,8 +50,8 @@ class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.Life
   }
 }
 
-object BinlogSSHTunnelReader extends LazyLogging {
-  def apply(config: GushConfig): Try[BinaryLogClient] = {
+object BinlogClientBuilder extends LazyLogging {
+  def ssh(config: GushConfig): Either[Throwable, BinaryLogClient] = {
     val params = for {
       host <- config.mysqlHost
       port <- config.mysqlPort
@@ -77,10 +77,25 @@ object BinlogSSHTunnelReader extends LazyLogging {
           logger.info(s"Forwarding 127.0.0.1:$lport to $host:$port")
 
           new BinaryLogClient("127.0.0.1", lport, user, password)
-        })
+        }) match {
+          case Success(v) ⇒ Right(v)
+          case Failure(t) ⇒ Left(t)
+        }
       case None ⇒
-        Failure(new Exception("Not enough parameters to initialize a ssh client"))
+        Left(new Exception("Not enough parameters to initialize a ssh client"))
     }
+  }
+
+  def direct(config: GushConfig): Either[Throwable, BinaryLogClient] = {
+    val connection = for {
+      host <- config.mysqlHost
+      port <- config.mysqlPort
+      user <- config.mysqlUser
+      password <- config.mysqlPassword
+    } yield new BinaryLogClient(host, port, user, password)
+
+    connection
+      .toRight(new Exception("Not enough parameters to start a binlog client"))
   }
 }
 
@@ -102,32 +117,19 @@ object BinlogRemoteReader extends LazyLogging {
     })
   }
 
-  def setupSimpleClient(config: GushConfig): Try[BinaryLogClient] = {
-    val connection = for {
-      host <- config.mysqlHost
-      port <- config.mysqlPort
-      user <- config.mysqlUser
-      password <- config.mysqlPassword
-    } yield new BinaryLogClient(host, port, user, password)
-
-    Try(connection.get)
-  }
-
-  def setupClient(config: GushConfig): Try[BinaryLogClient] = {
-    config.sshTunnelAddress match {
-      case Some(_) ⇒
-        BinlogSSHTunnelReader(config)
-      case _ ⇒
-        setupSimpleClient(config)
-    }
-  }
-
   def events(config: GushConfig) = {
     setupClient(config) match {
-      case Success(client) =>
+      case Right(client) ⇒
         observableFrom(client)
-      case Failure(t) =>
+      case Left(t) ⇒
         throw t
     }
+  }
+
+  private def setupClient(config: GushConfig): Either[Throwable, BinaryLogClient] = {
+    config.sshTunnelAddress
+      .map(x ⇒ BinlogClientBuilder.ssh(_))
+      .getOrElse(BinlogClientBuilder.direct(_))
+      .apply(config)
   }
 }
