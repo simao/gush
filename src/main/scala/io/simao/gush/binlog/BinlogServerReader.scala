@@ -8,6 +8,9 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import rx.lang.scala.{Observable, Observer, Subscription}
 
 import scala.util.{Failure, Success, Try}
+import scalaz.{-\/, \/-, \/}
+import scalaz.syntax.std.option._
+import scalaz.syntax.either._
 
 class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with StrictLogging {
   def onEvent(event: Event) {
@@ -51,7 +54,7 @@ class LifecycleListener(observer: Observer[String]) extends BinaryLogClient.Life
 }
 
 object BinlogClientBuilder extends LazyLogging {
-  def ssh(config: GushConfig): Either[Throwable, BinaryLogClient] = {
+  def ssh(config: GushConfig): \/[Throwable, BinaryLogClient] = {
     val params = for {
       host <- config.mysqlHost
       port <- config.mysqlPort
@@ -78,15 +81,15 @@ object BinlogClientBuilder extends LazyLogging {
 
           new BinaryLogClient("127.0.0.1", lport, user, password)
         }) match {
-          case Success(v) ⇒ Right(v)
-          case Failure(t) ⇒ Left(t)
+          case Success(v) ⇒ v.right
+          case Failure(t) ⇒ t.left
         }
       case None ⇒
-        Left(new Exception("Not enough parameters to initialize a ssh client"))
+        new Exception("Not enough parameters to initialize a ssh client").left
     }
   }
 
-  def direct(config: GushConfig): Either[Throwable, BinaryLogClient] = {
+  def direct(config: GushConfig): \/[Throwable, BinaryLogClient] = {
     val connection = for {
       host <- config.mysqlHost
       port <- config.mysqlPort
@@ -94,8 +97,7 @@ object BinlogClientBuilder extends LazyLogging {
       password <- config.mysqlPassword
     } yield new BinaryLogClient(host, port, user, password)
 
-    connection
-      .toRight(new Exception("Not enough parameters to start a binlog client"))
+    connection.toRightDisjunction(new Exception("Not enough parameters to start a binlog client"))
   }
 }
 
@@ -119,17 +121,18 @@ object BinlogRemoteReader extends LazyLogging {
 
   def events(config: GushConfig) = {
     setupClient(config) match {
-      case Right(client) ⇒
+      case \/-(client) ⇒
         observableFrom(client)
-      case Left(t) ⇒
+      case -\/(t) ⇒
         throw t
     }
   }
 
-  private def setupClient(config: GushConfig): Either[Throwable, BinaryLogClient] = {
+  private def setupClient(config: GushConfig): \/[Throwable, BinaryLogClient] = {
     config.sshTunnelAddress
       .map(x ⇒ BinlogClientBuilder.ssh(_))
       .getOrElse(BinlogClientBuilder.direct(_))
       .apply(config)
   }
 }
+
