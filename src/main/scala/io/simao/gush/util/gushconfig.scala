@@ -1,7 +1,9 @@
 package io.simao.gush.util
 
-import java.io.{FileInputStream, File}
+import java.io.{File, FileInputStream}
+
 import org.yaml.snakeyaml.Yaml
+
 import scala.collection.JavaConversions._
 
 class GushConfig(val config: Map[String, Object]) {

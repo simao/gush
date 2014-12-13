@@ -4,11 +4,13 @@ import com.espertech.esper.client.EPRuntime
 import io.simao.gush.binlog.{BinlogInsertEvent, BinlogUpdateEvent}
 import io.simao.gush.esper.BinlogToEsperSender
 import io.simao.gush.util.GushConfig
+import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FunSuite, OneInstancePerTest}
 import rx.lang.scala.Observable
 
+import scala.collection.JavaConverters._
 
 // TODO: Use scalamock. see https://github.com/paulbutcher/ScalaMock/issues/86
 class BinlogToEsperSenderTest extends FunSuite with OneInstancePerTest with MockitoSugar {
@@ -66,4 +68,19 @@ class BinlogToEsperSenderTest extends FunSuite with OneInstancePerTest with Mock
 
     verify(epRuntime).sendEvent(org.mockito.Matchers.eq(insertEvent))
   }
+
+  test("ignores sql statements prefixed with ignored prefixes") {
+    val config = new GushConfig(
+      Map("ignored_statements_prefixes" → List("INSERT").asJava,
+        "ignored_tables" → List().asJava))
+
+    val subject = new BinlogToEsperSender(epRuntime, config) {
+      override def remoteStream = Observable.from(sqlQueries)
+    }
+
+    subject.startEventSending
+
+    verify(epRuntime).sendEvent(any[BinlogUpdateEvent]())
+  }
 }
+

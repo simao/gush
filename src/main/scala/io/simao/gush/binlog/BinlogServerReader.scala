@@ -15,22 +15,12 @@ import scalaz.syntax.either._
 class BinlogEventListener(observer: Observer[String])(implicit val config: GushConfig) extends BinaryLogClient.EventListener with StrictLogging {
   def onEvent(event: Event) {
     val header = event.getHeader.asInstanceOf[EventHeaderV4]
-    if(header.getEventType.equals(EventType.QUERY)) {
+    if (header.getEventType.equals(EventType.QUERY)) {
       val data = event.getData.asInstanceOf[QueryEventData]
 
-      if (ignored_event(data.getSql)) {
-        logger.trace(s"Event ignored: ${data.getSql.slice(0, 30)}")
-      } else {
-        logger.debug(s"Sending binlog event to observer (${data.getSql.slice(0, 30)})")
-        observer.onNext(data.getSql)
-      }
+      logger.debug(s"Sending binlog event to observer (${data.getSql.slice(0, 30)})")
+      observer.onNext(data.getSql)
     }
-  }
-
-  // TODO: Should be moved outside somehow
-  def ignored_event(sqlStatement: String) = {
-    config.ignored_tables.exists { tn => sqlStatement.contains(s"`$tn`") } ||
-    config.ignored_prefixes.exists(sqlStatement.startsWith)
   }
 }
 

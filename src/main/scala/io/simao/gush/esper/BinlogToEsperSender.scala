@@ -14,6 +14,7 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
     sqlStream
       .filter(s ⇒ s.startsWith("INSERT INTO") || s.startsWith("UPDATE"))
       .filter(!_.contains("ON DUPLICATE KEY UPDATE"))
+      .filter(!ignored_event(_))
       .flatMapIterable(BinlogEvent.parseAll(_).get)
   }
 
@@ -21,10 +22,10 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
     BinlogRemoteReader.events(config)
   }
 
-  def handleStreamError(ex: Throwable): Unit =
-  {
+  def handleStreamError(ex: Throwable): Unit = {
     logger.error("Error: ", ex)
     statsd.increment("gush.exceptions.onError")
+
   }
 
   def startEventSending = {
@@ -34,5 +35,10 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
       .subscribe(sendToEsper _)
 
     stream
+  }
+
+  private def ignored_event(sqlStatement: String) = {
+    config.ignored_tables.exists { tn => sqlStatement.contains(s"`$tn`") } ||
+      config.ignored_prefixes.exists(sqlStatement.startsWith)
   }
 }
