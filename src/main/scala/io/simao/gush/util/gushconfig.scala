@@ -21,15 +21,18 @@ class GushConfig(val config: Map[String, Object]) {
 
   def sshTunnelUser = getProperty("ssh_tunnel_user").orElse(Some("gush"))
 
-  def ignored_tables = {
-    config("ignored_tables").asInstanceOf[java.util.List[String]].toList
-  }
+  def ignored_tables = getListProperty("ignored_tables")
 
-  def ignored_prefixes = {
-    config("ignored_statements_prefixes").asInstanceOf[java.util.List[String]].toList
-  }
+  def ignored_prefixes = getListProperty("ignored_statements_prefixes")
 
   def getProperty(key: String): Option[String] = config.lift(key).map(_.toString)
+
+  def getListProperty(key: String): List[String] = {
+    config.lift(key)
+    .map(_.asInstanceOf[java.util.List[String]])
+    .map(_.toList)
+    .getOrElse(List())
+  }
 }
 
 object GushConfig {
