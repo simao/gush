@@ -28,10 +28,11 @@ class GushConfig(val config: Map[String, Object]) {
   def getProperty(key: String): Option[String] = config.lift(key).map(_.toString)
 
   def getListProperty(key: String): List[String] = {
-    config.lift(key)
-    .map(_.asInstanceOf[java.util.List[String]])
-    .map(_.toList)
-    .getOrElse(List())
+    config
+      .lift(key)
+      .map(_.asInstanceOf[java.util.List[String]])
+      .map(_.toList)
+      .getOrElse(List())
   }
 }
 

@@ -34,4 +34,3 @@ libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.10.8"
 
-libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.0"
