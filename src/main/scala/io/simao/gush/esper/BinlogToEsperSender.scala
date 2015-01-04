@@ -29,12 +29,10 @@ class BinlogToEsperSender(epRuntime: EPRuntime, config: GushConfig) extends Stat
   }
 
   def startEventSending = {
-    val stream = events(remoteStream)
+    events(remoteStream)
       .doOnError(handleStreamError _)
       .retry(3)
       .subscribe(sendToEsper _)
-
-    stream
   }
 
   private def ignored_event(sqlStatement: String) = {
