@@ -34,3 +34,7 @@ libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.10.8"
 
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-experimental" % "2.0.3"
+
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-testkit-experimental" % "2.0.3"
+

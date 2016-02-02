@@ -1,5 +1,7 @@
 package io.simao.util
 
+import scala.language.implicitConversions
+
 class KestrelObj[T](value: T) {
   def tap(f: T ⇒ Unit): T = {
     f(value)

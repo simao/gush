@@ -88,6 +88,11 @@ object BinlogClientBuilder extends LazyLogging {
   }
 }
 
+object LocalBinlogReader {
+
+}
+
+
 object BinlogRemoteReader extends LazyLogging {
   def observableFrom(client: BinaryLogClient) = {
     Observable.create((o: Observer[String]) => {
