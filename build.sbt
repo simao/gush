@@ -1,6 +1,6 @@
 name := "gush"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.7"
 
 version := "0.0.2"
 
@@ -20,21 +20,18 @@ libraryDependencies += "com.github.shyiko" % "mysql-binlog-connector-java" % "0.
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-libraryDependencies += "com.espertech" % "esper" % "4.6.0"
-
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.13"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 
-libraryDependencies += "com.jcraft" % "jsch" % "0.1.51"
-
 libraryDependencies += "com.foundationdb" % "fdb-sql-parser" % "1.0.17"
-
-libraryDependencies += "io.reactivex" %% "rxscala" % "0.22.0"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.10.8"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-stream-experimental" % "2.0.3"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.2"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-stream-testkit-experimental" % "2.0.3"
+libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.4.2"
 
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-testkit" % "2.4.2"
+
+libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % "2.4.2"

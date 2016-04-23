@@ -31,6 +31,7 @@ class FoundationParser {
     val parsedStatement = cleanedForParsing(statement)
     val t = Try(parser.parseStatement(parsedStatement))
 
+    // ? Why asInstanceof?
     toSqlStatement(t).asInstanceOf[Try[List[T]]]
   }
 }

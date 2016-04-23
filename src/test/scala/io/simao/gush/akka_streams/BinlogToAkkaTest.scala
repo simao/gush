@@ -2,14 +2,14 @@ package io.simao.gush.akka_streams
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.{Source, Sink}
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestKit
+import io.simao.gush.SqlToBinlog
 import io.simao.gush.binlog.{BinlogEvent, BinlogInsertEvent, BinlogUpdateEvent}
 import io.simao.gush.util.GushConfig
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSuiteLike, ShouldMatchers}
-import rx.lang.scala.Observable
 
 import scala.collection.JavaConverters._
 
@@ -27,9 +27,9 @@ class BinlogToAkkaTest extends
     "UPDATE `table1` SET col0 = 4 WHERE col1 = 1"
   )
 
-  val sqlStream = Observable.from(sqlQueries)
+  val sqlStream = Source(sqlQueries)
 
-  val subject = new BinlogToAkkaStreams(sqlStream, config)
+  val subject = new SqlToBinlog(sqlStream, config)
 
   test("sends insert events to akka") {
     val insertEvent = BinlogInsertEvent("table0", Map("col2" → "3", "col1" → "2", "col0" → "1"))
@@ -50,13 +50,11 @@ class BinlogToAkkaTest extends
     val probe = subject.startSending(testSink)
     probe.requestNext()
     val next = probe.requestNext()
-;
+
     next shouldBe updateEvent
   }
 
   test("ignores sql statements prefixed with ignored prefixes") {
-    pending
-
     val sqlQueries = List(
       "INSERT INTO `table0` (`col0`, `col1`, `col2`) VALUES (1, 2, 3)",
       "UPDATE `table1` SET col0 = 4 WHERE col1 = 1"
@@ -66,16 +64,17 @@ class BinlogToAkkaTest extends
       Map("ignored_statements_prefixes" → List("INSERT").asJava,
         "ignored_tables" → List().asJava))
 
-    val queryStream = Observable.from(sqlQueries)
+    val queryStream = Source(sqlQueries)
 
-    val subject = new BinlogToAkkaStreams(queryStream, config)
+    val subject = new SqlToBinlog(queryStream, config)
 
-    val testSink = Sink.fold[Seq[BinlogEvent], BinlogEvent](List.empty[BinlogEvent])(_ :+ _)
+    val testSink = Sink.seq[BinlogEvent]
 
     val f = subject.startSending(testSink)
 
     whenReady(f) { probeContents ⇒
-      probeContents shouldBe empty
+      probeContents should have size 1
+      probeContents.head shouldBe a[BinlogUpdateEvent]
     }
   }
 

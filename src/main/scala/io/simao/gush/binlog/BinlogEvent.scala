@@ -12,9 +12,9 @@ object BinlogEvent {
     FoundationParser
       .parse(raw_sql)
       .map(_.map(parsedStatementToBinlogEvent))
-      .recoverWith({
-      case t: Throwable ⇒ Failure(new BinlogEventParseError(s"Error Parsing: $raw_sql: ", t))
-    })
+      .recoverWith {
+        case t ⇒ Failure(new BinlogEventParseError(s"Error Parsing: $raw_sql: ", t))
+      }
   }
 
   def parsedStatementToBinlogEvent(stm: SqlStatement): BinlogEvent = stm match {
@@ -25,16 +25,18 @@ object BinlogEvent {
   }
 }
 
-sealed trait BinlogEvent
+sealed trait BinlogEvent {
+  def tableName: String
+}
 
-case class BinlogInsertEvent(@BeanProperty tableName: String,
-                             @BeanProperty fields: Map[String, String]) extends BinlogEvent {
+case class BinlogInsertEvent(tableName: String,
+                             fields: Map[String, String]) extends BinlogEvent {
   def getField(k: String) = fields(k)
 
   def getAsFloat(k: String) = fields(k).toFloat
 }
 
-case class BinlogUpdateEvent(@BeanProperty tableName: String,
-                             @BeanProperty updatedFields: Map[String, String],
-                             @BeanProperty whereFields: Map[String, String]) extends BinlogEvent
+case class BinlogUpdateEvent(tableName: String,
+                             updatedFields: Map[String, String],
+                             whereFields: Map[String, String]) extends BinlogEvent
 
